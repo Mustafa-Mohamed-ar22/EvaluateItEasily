@@ -1,0 +1,6 @@
+@EvaluateItEasily.API_HostAddress = http://localhost:5208
+
+GET {{EvaluateItEasily.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
