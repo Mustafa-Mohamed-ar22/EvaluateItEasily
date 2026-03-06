@@ -8,7 +8,7 @@ namespace EvaluateItEasily.API.Extensions
         public static ObjectResult ToProblem(this Result result)
         {
             if (result.IsSuccess)
-                throw new InvalidOperationException("Cannot convert success result to a problem");
+                throw new InvalidOperationException("Can't convert success result to a problem");
 
             var problem = Results.Problem(statusCode: result.Error.StatusCode);
             var problemDetails = problem.GetType().GetProperty(nameof(ProblemDetails))!.GetValue(problem) as ProblemDetails;
