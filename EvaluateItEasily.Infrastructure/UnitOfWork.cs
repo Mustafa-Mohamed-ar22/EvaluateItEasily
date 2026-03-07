@@ -1,11 +1,13 @@
 ﻿using EvaluateItEasily.Core;
 using EvaluateItEasily.Core.Contracts;
+using EvaluateItEasily.Core.Contracts.Repositories;
 using EvaluateItEasily.Core.Entities;
 using EvaluateItEasily.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace EvaluateItEasily.Infrastructure
@@ -14,15 +16,12 @@ namespace EvaluateItEasily.Infrastructure
     {
         private readonly AppDbContext _context;
 
-        public IGenericRepository<Proposal> Proposals { get; private set; }
-       // public IBooksRepository Books { get; private set; }
+        public IGroupRepository Groups { get; private set; }
 
-        public UnitOfWork(AppDbContext context)
+        public UnitOfWork(AppDbContext context,IGroupRepository groupRepository)
         {
             _context = context;
-
-            Proposals = new GenericRepository<Proposal>(_context);
-            //Books = new BooksRepository(_context);
+            Groups = groupRepository;
         }
 
         public async Task<int> complete(CancellationToken cancellationToken = default)

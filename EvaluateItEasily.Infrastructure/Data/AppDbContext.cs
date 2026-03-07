@@ -1,12 +1,16 @@
-﻿using EvaluateItEasily.Core.Entities;
+﻿using EvaluateItEasily.Core.Contracts.Services;
+using EvaluateItEasily.Core.Entities;
 using EvaluateItEasily.Infrastructure.Data.Config;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace EvaluateItEasily.Infrastructure.Data
 {
-    public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<ApplicationUser>(options)
+    public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService currentUserService) : IdentityDbContext<ApplicationUser>(options)
     {
+        private readonly ICurrentUserService _currentUserService= currentUserService;
+
         public DbSet<Decision> Decisions { get; set; } 
         public DbSet<Group> Groups { get; set; } 
         public DbSet<GroupMember> GroupMembers { get; set; } 
@@ -36,6 +40,25 @@ namespace EvaluateItEasily.Infrastructure.Data
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
+        }
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            var trackedEntries = ChangeTracker.Entries<AuditableEntity>();
+            var userId = _currentUserService.GetUserId();
+            foreach (var entityEntry in trackedEntries)
+            {
+                if (entityEntry.State == EntityState.Added)
+                {
+                    entityEntry.Property(x => x.CreatedById).CurrentValue = userId!;
+                }
+                else if (entityEntry.State == EntityState.Modified)
+                {
+                    entityEntry.Property(x => x.UpdatedById).CurrentValue = userId;
+                    entityEntry.Property(x => x.UpdatedOn).CurrentValue = DateTime.UtcNow;
+
+                }
+            }
+            return base.SaveChangesAsync(cancellationToken);
         }
     }
 }

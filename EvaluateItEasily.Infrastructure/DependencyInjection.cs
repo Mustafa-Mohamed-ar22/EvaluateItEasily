@@ -1,9 +1,11 @@
 ﻿using EvaluateItEasily.Core;
+using EvaluateItEasily.Core.Contracts.Repositories;
 using EvaluateItEasily.Core.Contracts.Services;
 using EvaluateItEasily.Core.Entities;
 using EvaluateItEasily.Infrastructure.Data;
 using EvaluateItEasily.Infrastructure.Middlewares;
 using EvaluateItEasily.Infrastructure.Options;
+using EvaluateItEasily.Infrastructure.Repositories;
 using EvaluateItEasily.Infrastructure.Services;
 using FluentValidation;
 using Mapster;
@@ -37,6 +39,9 @@ namespace EvaluateItEasily.Infrastructure
                 .AddOptions( configuration);
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<JwtProvider>();
+            services.AddScoped<ICurrentUserService,CurrentUserService>();
+            services.AddScoped<IGroupRepository,GroupRepository>();
+            services.AddScoped<IGroupService,GroupService>();
 
             services.AddHttpContextAccessor();
             services.AddExceptionHandler<GlobalExceptionHandler>();

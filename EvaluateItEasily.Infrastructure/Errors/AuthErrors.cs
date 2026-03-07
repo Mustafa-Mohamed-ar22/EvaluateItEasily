@@ -1,6 +1,4 @@
-﻿using EvaluateItEasily.Core.Results;
-using Microsoft.AspNetCore.Http;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using Microsoft.AspNetCore.Http;
 
 namespace EvaluateItEasily.Infrastructure.Errors
 {

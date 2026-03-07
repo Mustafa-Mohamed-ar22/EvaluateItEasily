@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using EvaluateItEasily.Infrastructure.Data;
+using FluentValidation;
 using RegisterRequest = EvaluateItEasily.Core.Auth.RegisterRequest;
 
 
@@ -6,6 +7,13 @@ namespace EvaluateItEasily.Infrastructure.Validators
 {
     public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
     {
+        private readonly AppDbContext _context;
+
+        public RegisterRequestValidator(AppDbContext context)
+        {
+            _context = context;
+        }
+
         public RegisterRequestValidator()
         {
             RuleFor(x => x.FullName)
@@ -14,7 +22,10 @@ namespace EvaluateItEasily.Infrastructure.Validators
 
             RuleFor(x => x.Email)
                 .NotEmpty().WithMessage("Email is required")
-                .EmailAddress().WithMessage("Invalid email format");
+                .EmailAddress().WithMessage("Invalid email format")
+                .Must(x=>_context.Users.All(y=>y.Email!=x)).WithMessage("We Already have this email");
+
+            
 
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Password is required")
