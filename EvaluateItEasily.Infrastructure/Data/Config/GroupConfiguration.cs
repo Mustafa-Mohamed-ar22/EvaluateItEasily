@@ -14,7 +14,7 @@ namespace EvaluateItEasily.Infrastructure.Data.Config
             builder.Property(x => x.LeaderId).IsRequired();
 
             
-            builder.HasMany(x=>x.Members).WithOne(y=>y.Group).HasForeignKey(y=>y.GroupId);
+            builder.HasMany(x=>x.Members).WithOne(y=>y.Group).HasForeignKey(y=>y.GroupId).OnDelete(DeleteBehavior.Cascade);
             builder.HasOne(x=>x.Proposal).WithOne(y=>y.Group).HasForeignKey<Proposal>(y=>y.GroupId);
             builder.HasMany(x=>x.Members).WithOne(y=>y.Group).HasForeignKey(y=>y.GroupId);
 
