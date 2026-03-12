@@ -1,6 +1,7 @@
 ﻿using EvaluateItEasily.Core.Contracts;
 using EvaluateItEasily.Core.Contracts.Repositories;
 using EvaluateItEasily.Core.Entities;
+using EvaluateItEasily.Core.Enums;
 using EvaluateItEasily.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 namespace EvaluateItEasily.Infrastructure.Repositories
@@ -34,5 +35,23 @@ namespace EvaluateItEasily.Infrastructure.Repositories
                 .Include(x=> x.Members)
                     .ThenInclude(x => x.Student)
                 .FirstOrDefaultAsync(x => x.Members.Any(x => x.StudentId == studentId), ct);
+
+        //public async Task<IEnumerable<GroupMember>> GetAvailbleStudents(CancellationToken ct = default)
+        //{
+        //    var studentRoleId = await _context.Roles.Where(x => x.Name == UserRole.Student.ToString()).Select(x=>x.Id).FirstOrDefaultAsync(ct);
+
+        //    var allStudents =  _context.UserRoles.Where(x => x.RoleId == studentRoleId);
+
+        //    var existedGroupMembers =await _context.GroupMembers.Select(x=>x.StudentId).ToListAsync(ct);
+
+        //    var availableStudents = allStudents.Where(x => existedGroupMembers.Contains(x.UserId));
+
+        //    return availableStudents;
+        //}
+        public async Task<IEnumerable<string>> GetAllAssignedStudentIdsAsync(CancellationToken ct = default) =>
+                await _context.GroupMembers
+                .Select(m => m.StudentId)
+                .Distinct()
+                .ToListAsync(ct);
     }
 }

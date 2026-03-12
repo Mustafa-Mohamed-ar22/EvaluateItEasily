@@ -1,15 +1,11 @@
 ﻿using EvaluateItEasily.Core.Contracts.Services;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EvaluateItEasily.Infrastructure.Services
 {
-    internal class CurrentUserService : ICurrentUserService
+    public class CurrentUserService : ICurrentUserService
     {
         private IHttpContextAccessor _httpContextAccessor;
 

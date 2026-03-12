@@ -64,5 +64,13 @@ namespace EvaluateItEasily.API.Controllers
             var result = await _groupService.RemoveMemberAsync(groupId, studentId,ct);
             return result.IsSuccess ? Ok() : result.ToProblem();
         }
+
+        [HttpGet("available-students")]
+        [Authorize(Roles = "Student,Admin,Committee")]
+        public async Task<IActionResult> GetAvailableStudents(CancellationToken ct)
+        {
+            var result = await _groupService.GetAvailableStudentsAsync( ct);
+            return result.IsSuccess ? Ok(result.Data) : result.ToProblem();
+        }
     }
 }

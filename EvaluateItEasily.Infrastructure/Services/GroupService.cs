@@ -3,6 +3,7 @@ using EvaluateItEasily.Core;
 using EvaluateItEasily.Core.Contracts.Services;
 using EvaluateItEasily.Core.DTO_s.Groups;
 using EvaluateItEasily.Core.Entities;
+using EvaluateItEasily.Core.Enums;
 using EvaluateItEasily.Core.Results;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
@@ -94,7 +95,7 @@ namespace EvaluateItEasily.Infrastructure.Services
 
         public async Task<Result<GroupResponse>> GetByIdAsync(int id, CancellationToken ct = default)
         {
-            var result = await _unitOfWork.Groups.GetWithMembersAsync(id,ct);
+            var result = await _unitOfWork.Groups.GetWithMembersAsync(id, ct);
             return Result.Success(result.Adapt<GroupResponse>());
         }
 
@@ -108,7 +109,7 @@ namespace EvaluateItEasily.Infrastructure.Services
             return Result.Success(group.Adapt<GroupResponse>());
         }
 
-        public async Task<Result> RemoveMemberAsync(int groupId,string studentId,CancellationToken ct = default)
+        public async Task<Result> RemoveMemberAsync(int groupId, string studentId, CancellationToken ct = default)
         {
             var currentUserId = _currentUserService.GetUserId();
 
@@ -131,6 +132,25 @@ namespace EvaluateItEasily.Infrastructure.Services
             await _unitOfWork.complete(ct);
 
             return Result.Success();
+        }
+        public async Task<Result<IEnumerable<UserResponse>>> GetAvailableStudentsAsync(CancellationToken ct = default)
+        {
+            var allStudents = await _userManager.GetUsersInRoleAsync(UserRole.Student.ToString());
+
+            var assignedStudentIds = await _unitOfWork.Groups.GetAllAssignedStudentIdsAsync(ct);
+
+            var availableStudents = allStudents
+                .Where(s => s.IsActive && !assignedStudentIds.Contains(s.Id))
+                .Select(s => new UserResponse(
+                    Id: s.Id,
+                    FullName: s.FullName,
+                    Email: s.Email!,
+                    Role: UserRole.Student.ToString(),
+                    IsActive: s.IsActive,
+                    CreatedOn: s.CreatedOn
+                ));
+
+            return Result.Success(availableStudents);
         }
     }
 }

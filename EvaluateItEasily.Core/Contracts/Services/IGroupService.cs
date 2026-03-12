@@ -11,5 +11,6 @@ namespace EvaluateItEasily.Core.Contracts.Services
         Task<Result<GroupResponse>> CreateAsync(CreateGroupRequest request, CancellationToken ct = default);
         Task<Result<GroupResponse>> AddMemberAsync(int groupId, AddMemberRequest request, CancellationToken ct = default);
         Task<Result> RemoveMemberAsync(int groupId, string studentId, CancellationToken ct = default);
+        Task<Result<IEnumerable<UserResponse>>> GetAvailableStudentsAsync(CancellationToken ct = default);
     }
 }

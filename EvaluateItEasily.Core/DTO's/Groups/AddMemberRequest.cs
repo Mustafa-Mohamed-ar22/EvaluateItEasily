@@ -5,4 +5,5 @@ namespace EvaluateItEasily.Core.DTO_s.Groups
     (
         string StudentEmail
     );
+
 }
