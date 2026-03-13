@@ -21,6 +21,20 @@ namespace EvaluateItEasily.Infrastructure.Data.Config
 
             builder.Property(p => p.SubmittedAt).IsRequired();
 
+            builder.Property(x => x.FileName).IsRequired().HasMaxLength(255);
+
+            builder.ToTable("Proposals", t =>
+            {
+                t.HasCheckConstraint(
+                    "CK_Proposals_FileName_Valid",
+                    "FileName NOT LIKE '%[^A-Za-z0-9_ .]%' AND FileName NOT LIKE REPLICATE('.', LEN(FileName))"
+                );
+            });
+
+            builder.Property(x => x.FileExtension).IsRequired().HasMaxLength(20);
+            builder.Property(x => x.ContentType).IsRequired().HasMaxLength(60);
+
+
             builder.HasOne(x => x.Evaluation).WithOne(y => y.Proposal).HasForeignKey<Evaluation>(y => y.ProposalId)
                 .OnDelete(DeleteBehavior.Restrict);
 

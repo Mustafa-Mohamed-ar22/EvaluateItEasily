@@ -1,10 +1,6 @@
 ﻿using Azure.Core;
 using EvaluateItEasily.Core;
-using EvaluateItEasily.Core.Contracts.Services;
 using EvaluateItEasily.Core.DTO_s.Groups;
-using EvaluateItEasily.Core.Entities;
-using EvaluateItEasily.Core.Enums;
-using EvaluateItEasily.Core.Results;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 
@@ -15,18 +11,30 @@ namespace EvaluateItEasily.Infrastructure.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
         private readonly UserManager<ApplicationUser> _userManager;
-
-        public GroupService(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, UserManager<ApplicationUser> userManager)
+        private readonly ICacheService _cacheService;
+        private readonly string cacheKey = "AllGroups"; 
+        public GroupService(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, UserManager<ApplicationUser> userManager,ICacheService cacheService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
             _userManager = userManager;
+            _cacheService = cacheService;
         }
 
         public async Task<Result<IEnumerable<GroupResponse>>> GetAllAsync(CancellationToken ct = default)
         {
-            var result = await _unitOfWork.Groups.GetAllWithMembersAsync(ct);
-            return Result.Success(result.Adapt<IEnumerable<GroupResponse>>());
+            var cachedResults = await _cacheService.GetAsync< IEnumerable<GroupResponse>>(cacheKey,ct);
+            IEnumerable<GroupResponse> result = [];
+            if (cachedResults is not null)
+            {
+                result = cachedResults;
+            } else
+            {
+                var dbResult = await _unitOfWork.Groups.GetAllWithMembersAsync(ct);
+                result = dbResult.Adapt<IEnumerable<GroupResponse>>();
+                await _cacheService.SetAsync(cacheKey, result, ct);
+            }
+            return Result.Success(result);
         }
         public async Task<Result<GroupResponse>> AddMemberAsync(int groupId, AddMemberRequest request, CancellationToken ct = default)
         {
@@ -57,7 +65,8 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             _unitOfWork.Groups.Update(group);
             await _unitOfWork.complete(ct);
-
+            await _cacheService.RemoveAsync(cacheKey,ct);
+            await _cacheService.RemoveAsync($"{cacheKey}-{groupId}", ct);
             var updated = await _unitOfWork.Groups.GetWithMembersAsync(groupId, ct);
             return Result.Success(updated.Adapt<GroupResponse>());
         }
@@ -88,6 +97,7 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             await _unitOfWork.Groups.AddAsync(group, ct);
             await _unitOfWork.complete(ct);
+            await _cacheService.RemoveAsync(cacheKey, ct);
 
             var created = await _unitOfWork.Groups.GetWithMembersAsync(group.Id, ct);
             return Result.Success(created.Adapt<GroupResponse>());
@@ -95,10 +105,18 @@ namespace EvaluateItEasily.Infrastructure.Services
 
         public async Task<Result<GroupResponse>> GetByIdAsync(int id, CancellationToken ct = default)
         {
-            var result = await _unitOfWork.Groups.GetWithMembersAsync(id, ct);
-            return Result.Success(result.Adapt<GroupResponse>());
+            var cachedResult = await _cacheService.GetAsync<GroupResponse>($"{cacheKey}-{id}", ct);
+            GroupResponse result;
+            if (cachedResult is not null)
+                result = cachedResult;
+            else
+            {
+                var Dbresult = await _unitOfWork.Groups.GetWithMembersAsync(id, ct);
+                result = Dbresult.Adapt<GroupResponse>();
+                await _cacheService.SetAsync($"{cacheKey}-{id}",result, ct);
+            }
+            return Result.Success(result);
         }
-
         public async Task<Result<GroupResponse>> GetMyGroupAsync(CancellationToken ct = default)
         {
             string CurrentUserId = _currentUserService.GetUserId()!;
@@ -130,6 +148,8 @@ namespace EvaluateItEasily.Infrastructure.Services
             group.Members.Remove(member);
             _unitOfWork.Groups.Update(group);
             await _unitOfWork.complete(ct);
+            await _cacheService.RemoveAsync(cacheKey, ct);
+            await _cacheService.RemoveAsync($"{cacheKey}-{groupId}", ct);
 
             return Result.Success();
         }

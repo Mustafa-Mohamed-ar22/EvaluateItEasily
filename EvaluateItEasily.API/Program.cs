@@ -1,10 +1,5 @@
 
-using EvaluateItEasily.Core.Entities;
 using EvaluateItEasily.Infrastructure;
-using EvaluateItEasily.Infrastructure.Data;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace EvaluateItEasily.API
 {
@@ -28,14 +23,13 @@ namespace EvaluateItEasily.API
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
+            app.UseStaticFiles();
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
 
 
             app.MapControllers();
-
             app.Run();
         }
     }

@@ -16,6 +16,8 @@ namespace EvaluateItEasily.Infrastructure.Services
 
         public string? GetUserId()=>
             _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        
+        public string GetUserRole() =>                  
+        _httpContextAccessor.HttpContext?.User
+            .FindFirstValue(ClaimTypes.Role) ?? string.Empty;
     }
 }

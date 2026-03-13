@@ -1,4 +1,5 @@
-﻿using EvaluateItEasily.Core.Results;
+﻿using EvaluateItEasily.Core.DTO_s;
+using EvaluateItEasily.Core.Results;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EvaluateItEasily.API.Extensions
@@ -21,6 +22,21 @@ namespace EvaluateItEasily.API.Extensions
             };
 
             return new ObjectResult(problemDetails);
+        }
+        public static IActionResult ToFileResult(this Result<FileDownloadResponse> result)
+        {
+            if (result.IsFailure)
+                return result.Error.StatusCode switch
+                {
+                    StatusCodes.Status404NotFound => new NotFoundObjectResult(result.Error),
+                    StatusCodes.Status401Unauthorized => new UnauthorizedObjectResult(result.Error),
+                    _ => new BadRequestObjectResult(result.Error)
+                };
+
+            return new FileContentResult(result.Data.FileBytes, result.Data.ContentType)
+            {
+                FileDownloadName = result.Data.FileName
+            };
         }
     }
 }

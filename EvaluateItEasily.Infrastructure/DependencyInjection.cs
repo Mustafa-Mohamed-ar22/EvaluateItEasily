@@ -1,8 +1,4 @@
-﻿using EvaluateItEasily.Core;
-using EvaluateItEasily.Core.Contracts.Repositories;
-using EvaluateItEasily.Core.Contracts.Services;
-using EvaluateItEasily.Core.Entities;
-using EvaluateItEasily.Infrastructure.Data;
+﻿using EvaluateItEasily.Core.Contracts;
 using EvaluateItEasily.Infrastructure.Middlewares;
 using EvaluateItEasily.Infrastructure.Options;
 using EvaluateItEasily.Infrastructure.Repositories;
@@ -12,7 +8,6 @@ using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -42,10 +37,18 @@ namespace EvaluateItEasily.Infrastructure
             services.AddScoped<ICurrentUserService,CurrentUserService>();
             services.AddScoped<IGroupRepository,GroupRepository>();
             services.AddScoped<IGroupService,GroupService>();
-
+            services.AddScoped<IGroupService,GroupService>();
+            services.AddScoped<IProposalRepository,ProposalRepository>();
+            services.AddScoped<IProposalService,ProposalService>();
+            services.AddScoped<IFileService,FileService>();
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddHttpContextAccessor();
             services.AddExceptionHandler<GlobalExceptionHandler>();
             services.AddProblemDetails();
+            services.AddDistributedMemoryCache();
+            services.AddScoped<ICacheService, CacheService>();
+
+
             return services;
         }
 

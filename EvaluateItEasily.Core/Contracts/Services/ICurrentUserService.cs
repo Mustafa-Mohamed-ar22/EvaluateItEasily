@@ -9,5 +9,6 @@ namespace EvaluateItEasily.Core.Contracts.Services
     public interface ICurrentUserService
     {
         string? GetUserId();
+        string GetUserRole();
     }
 }

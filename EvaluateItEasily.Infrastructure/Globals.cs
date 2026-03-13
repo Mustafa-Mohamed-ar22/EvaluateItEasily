@@ -1,2 +1,11 @@
 ﻿global using Error = EvaluateItEasily.Core.Results.Error;
 global using EvaluateItEasily.Infrastructure.Errors;
+global using EvaluateItEasily.Core.Contracts.Repositories;
+global using EvaluateItEasily.Core.Entities;
+global using EvaluateItEasily.Infrastructure.Data;
+global using Microsoft.EntityFrameworkCore;
+global using EvaluateItEasily.Core;
+global using EvaluateItEasily.Core.DTO_s;
+global using EvaluateItEasily.Core.Contracts.Services;
+global using EvaluateItEasily.Core.Enums;
+global using EvaluateItEasily.Core.Results;

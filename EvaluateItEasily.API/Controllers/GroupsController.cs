@@ -12,10 +12,12 @@ namespace EvaluateItEasily.API.Controllers
     public class GroupsController : ControllerBase
     {
         private readonly IGroupService _groupService;
+        private readonly ICacheService _cacheService;
 
-        public GroupsController(IGroupService groupService)
+        public GroupsController(IGroupService groupService,ICacheService cacheService)
         {
             _groupService = groupService;
+            _cacheService = cacheService;
         }
         [HttpGet]
         [Authorize(Roles = "Admin,Committee")]

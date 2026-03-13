@@ -7,6 +7,8 @@ namespace EvaluateItEasily.Core
     public interface IUnitOfWork
     {
         IGroupRepository Groups { get; }
+        IProposalRepository Proposals { get; }
+        IGenericRepository<Notification> Notifications { get; }
         Task<int> complete(CancellationToken cancellationToken = default!);
     }
 }

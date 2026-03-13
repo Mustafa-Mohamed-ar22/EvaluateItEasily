@@ -8,4 +8,8 @@
         Rejected,
         RevisionRequested
     }
+    public enum UpdatableStatuses
+    {
+        Pending, RevisionRequested
+    };
 }

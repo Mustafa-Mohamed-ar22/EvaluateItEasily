@@ -4,6 +4,7 @@ using EvaluateItEasily.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EvaluateItEasily.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260312155635_Adding Proposal File Details")]
+    partial class AddingProposalFileDetails
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -478,7 +481,7 @@ namespace EvaluateItEasily.Infrastructure.Migrations
 
                     b.ToTable("Proposals", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Proposals_FileName_Valid", "FileName NOT LIKE '%[^A-Za-z0-9_ .]%' AND FileName NOT LIKE REPLICATE('.', LEN(FileName))");
+                            t.HasCheckConstraint("CK_Proposals_FileName_Valid", "FileName NOT LIKE '%[^A-Za-z0-9_]%'");
                         });
                 });
 
