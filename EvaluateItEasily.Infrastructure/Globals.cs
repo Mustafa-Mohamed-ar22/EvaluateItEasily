@@ -9,3 +9,6 @@ global using EvaluateItEasily.Core.DTO_s;
 global using EvaluateItEasily.Core.Contracts.Services;
 global using EvaluateItEasily.Core.Enums;
 global using EvaluateItEasily.Core.Results;
+global using CsvHelper;
+global using Mapster;
+global using EvaluateItEasily.Core.DTO_s.HistoricalProjects;

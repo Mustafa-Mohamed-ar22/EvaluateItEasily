@@ -11,8 +11,7 @@ namespace EvaluateItEasily.Infrastructure.Data.Config
             builder.ToTable("HistoricalProjects").HasKey(t => t.Id);
 
             builder.Property(x => x.Name)
-                .IsRequired()
-                .HasMaxLength(200);
+                .IsRequired().HasColumnType("nvarchar(MAX)");
 
             builder.Property(x => x.Abstract)
                 .IsRequired()
@@ -22,7 +21,7 @@ namespace EvaluateItEasily.Infrastructure.Data.Config
                 .IsRequired()
                 .HasMaxLength(100);
 
-            builder.Property(x => x.AcademicYear).IsRequired().HasMaxLength(100);             
+            builder.Property(x => x.AcademicYear).IsRequired().HasMaxLength(350);             
             builder.Property(x => x.ArchivedAt).IsRequired();
 
 

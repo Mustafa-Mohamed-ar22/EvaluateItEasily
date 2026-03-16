@@ -14,7 +14,7 @@ namespace EvaluateItEasily.API.Controllers
 
         [HttpPost("Login")]
 
-        public async Task<IActionResult> LoginAsync([FromBody]LoginRequest loginRequest,CancellationToken cancellationToken=default!)
+        public async Task<ActionResult<AuthResponse>> LoginAsync([FromBody]LoginRequest loginRequest,CancellationToken cancellationToken=default!)
         {
             var result = await _authService.LoginAsync(loginRequest, cancellationToken);
             return result.IsSuccess ? Ok(result.Data) : result.ToProblem();
@@ -22,13 +22,13 @@ namespace EvaluateItEasily.API.Controllers
         }
         [HttpPost("Register")]
 
-        public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest registerRequest, CancellationToken cancellationToken = default!)
+        public async Task<ActionResult<AuthResponse>> RegisterAsync([FromBody] RegisterRequest registerRequest, CancellationToken cancellationToken = default!)
         {
             var result = await _authService.RegisterAsync(registerRequest, cancellationToken);
             return result.IsSuccess ? Ok(result.Data) : result.ToProblem();
         }
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request,CancellationToken cancellationToken)
+        public async Task<ActionResult<AuthResponse>> RefreshToken([FromBody] RefreshTokenRequest request,CancellationToken cancellationToken)
         {
             var result = await _authService.RefreshTokenAsync(request.RefreshToken, cancellationToken);
             return result.IsSuccess ? Ok(result.Data) : result.ToProblem();

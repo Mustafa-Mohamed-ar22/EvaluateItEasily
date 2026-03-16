@@ -1,4 +1,6 @@
 ﻿using EvaluateItEasily.Core.Contracts;
+using EvaluateItEasily.Core.Contracts.Repositories;
+using EvaluateItEasily.Core.Settings;
 using EvaluateItEasily.Infrastructure.Middlewares;
 using EvaluateItEasily.Infrastructure.Options;
 using EvaluateItEasily.Infrastructure.Repositories;
@@ -47,8 +49,31 @@ namespace EvaluateItEasily.Infrastructure
             services.AddProblemDetails();
             services.AddDistributedMemoryCache();
             services.AddScoped<ICacheService, CacheService>();
+            services.AddScoped<IHistoricalProjectsRepository, HistoricalProjectsRepository>();
+            services.AddScoped<IDecisionRepository, DecisionRepository>();
+            services.AddScoped<IHistoricalProjectService, HistoricalProjectService>();
+            services.AddScoped<IEvaluationService, EvaluationService>();
+            services.AddScoped<IEvaluationRepository, EvaluationRepository>();
+            services.AddScoped<IEvaluationService, EvaluationService>();
+            services.AddScoped<IDecisionService,DecisionService>();
 
+            services.AddCors(options =>
+            {
+                options.AddPolicy("ReactAccess", b =>
+                {
+                    b.AllowAnyHeader();
+                    b.AllowAnyMethod();
+                    b.WithOrigins("http://localhost:5173");
+                });
+            });
 
+            var AIOptions = configuration.GetSection(AISettings.SectionName).Get<AISettings>();
+            services.AddHttpClient("AI_API", client =>
+            {
+                client.BaseAddress = new Uri(AIOptions.BaseUrl);
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+                client.Timeout = TimeSpan.FromSeconds(AIOptions.TimeoutSeconds);
+            });
             return services;
         }
 
@@ -66,6 +91,11 @@ namespace EvaluateItEasily.Infrastructure
             IConfiguration configuration)
         {
             string cs = configuration.GetSection("constr").Value!;
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("-------------------------------------------------------------------------------------");
+            Console.WriteLine(cs);
+            Console.WriteLine("-------------------------------------------------------------------------------------");
+            Console.ForegroundColor = ConsoleColor.White;
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(cs,b=>b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
 

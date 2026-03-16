@@ -29,6 +29,6 @@ namespace EvaluateItEasily.Infrastructure.Errors
             "This account has been deactivated",
             StatusCodes.Status401Unauthorized);
         public static readonly Error CreationFailed = new Error("Auth.CreationFailed",
-            "Not Complteted Operration", StatusCodes.Status500InternalServerError);
+            "Not Complteted Operration or, Username or password is not strong", StatusCodes.Status500InternalServerError);
     }
 }

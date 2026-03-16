@@ -8,6 +8,7 @@ namespace EvaluateItEasily.Infrastructure.Repositories
         {
         }
 
+       
         public async Task<IEnumerable<Proposal>> GetAllWithDetailsAsync(CancellationToken ct = default)
         => await _context.Proposals
             .Include(p => p.Group)
@@ -30,6 +31,12 @@ namespace EvaluateItEasily.Infrastructure.Repositories
             await _context.Proposals.Include(x => x.Group).ThenInclude(x => x.Leader)
             .Include(x => x.Group).ThenInclude(x => x.Members)
             .FirstOrDefaultAsync(x => x.Id == id, ct);
-        
+
+
+        public async Task<IEnumerable<Proposal>> GetAcceptedNotArchivedAsync(CancellationToken ct = default)
+        => await _context.Proposals.Include(x=>x.Group)
+            .Where(x => x.Status == ProposalStatus.Accepted && x.HistoricalProject == null)
+            .ToListAsync(ct);
+
     }
 }

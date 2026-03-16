@@ -25,5 +25,6 @@ namespace EvaluateItEasily.Infrastructure.Validators
                 .SetValidator(new ValidateFileName())
                 .When(x => x.ProposalFile is not null);
         }
+        
     }
 }

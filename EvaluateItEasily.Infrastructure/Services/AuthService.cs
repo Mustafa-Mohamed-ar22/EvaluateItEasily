@@ -52,7 +52,7 @@ namespace EvaluateItEasily.Infrastructure.Services
             {
                 return Result.Failure<AuthResponse>(AuthErrors.CreationFailed);
             }
-            await _userManager.AddToRoleAsync(user, "Student");
+            await _userManager.AddToRoleAsync(user, UserRole.Student.ToString());
 
             return await BuildAuthResponseAsync(user);
         }

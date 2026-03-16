@@ -8,5 +8,7 @@ namespace EvaluateItEasily.Core.Contracts.Repositories
         Task<Proposal?> GetWithDetailsAsync(int id, CancellationToken ct = default);
         Task<IEnumerable<Proposal>> GetAllWithDetailsAsync(CancellationToken ct = default);
         Task<Proposal?> GetByGroupIdAsync(int groupId, CancellationToken ct = default);
+        Task<IEnumerable<Proposal>> GetAcceptedNotArchivedAsync(CancellationToken ct = default);
+
     }
 }

@@ -9,6 +9,10 @@ namespace EvaluateItEasily.Core
         IGroupRepository Groups { get; }
         IProposalRepository Proposals { get; }
         IGenericRepository<Notification> Notifications { get; }
+        IGenericRepository<SimilarityResult> SimilarityResults { get; }
+        IDecisionRepository Decisions { get; }
+        IEvaluationRepository Evaluations { get; }
+        IHistoricalProjectsRepository HistoricalProjects { get; }
         Task<int> complete(CancellationToken cancellationToken = default!);
     }
 }
