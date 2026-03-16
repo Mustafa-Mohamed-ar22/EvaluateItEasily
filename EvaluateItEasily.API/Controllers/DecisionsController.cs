@@ -39,7 +39,7 @@ namespace EvaluateItEasily.API.Controllers
         public async Task<ActionResult<IEnumerable<DecisionResponse>>> GetByDecisionType([FromRoute]DecisionTypeRequest request,CancellationToken ct)
         {
             var result = await _decisionService.GetByDecisionTypeAsync(request.DecisionType, ct);
-            return result.IsSuccess ? Ok(result.Data) : result.ToProblem();
+            return result.IsSuccess ? Ok(result.Data) : result.ToProblem();  
         }
     }
 }
