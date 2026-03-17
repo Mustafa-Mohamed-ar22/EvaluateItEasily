@@ -56,6 +56,8 @@ namespace EvaluateItEasily.Infrastructure
             services.AddScoped<IEvaluationRepository, EvaluationRepository>();
             services.AddScoped<IEvaluationService, EvaluationService>();
             services.AddScoped<IDecisionService,DecisionService>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped<INotificationService, NotificationService>();
 
             services.AddCors(options =>
             {

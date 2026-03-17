@@ -8,7 +8,7 @@ namespace EvaluateItEasily.Core
     {
         IGroupRepository Groups { get; }
         IProposalRepository Proposals { get; }
-        IGenericRepository<Notification> Notifications { get; }
+        INotificationRepository Notifications { get; }
         IGenericRepository<SimilarityResult> SimilarityResults { get; }
         IDecisionRepository Decisions { get; }
         IEvaluationRepository Evaluations { get; }
