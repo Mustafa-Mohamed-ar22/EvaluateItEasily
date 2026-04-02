@@ -1,9 +1,4 @@
-﻿using EvaluateItEasily.Core.Contracts;
-using EvaluateItEasily.Core.Contracts.Repositories;
-using EvaluateItEasily.Core.Entities;
-using EvaluateItEasily.Core.Enums;
-using EvaluateItEasily.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
+﻿
 namespace EvaluateItEasily.Infrastructure.Repositories
 {
     public class GroupRepository : GenericRepository<Group>, IGroupRepository
@@ -35,6 +30,13 @@ namespace EvaluateItEasily.Infrastructure.Repositories
                 .Include(x=> x.Members)
                     .ThenInclude(x => x.Student)
                 .FirstOrDefaultAsync(x => x.Members.Any(x => x.StudentId == studentId), ct);
+        public async Task<Group?> GetByProposalIdAsync(int proposalId, CancellationToken ct = default) =>
+            await _context.Groups
+                .Include(x=>x.Proposal)
+                .Include(x => x.Leader)
+                .Include(x => x.Members)
+                    .ThenInclude(x => x.Student)
+                .FirstOrDefaultAsync(x => x.Proposal.Id==proposalId, ct);
 
         //public async Task<IEnumerable<GroupMember>> GetAvailbleStudents(CancellationToken ct = default)
         //{

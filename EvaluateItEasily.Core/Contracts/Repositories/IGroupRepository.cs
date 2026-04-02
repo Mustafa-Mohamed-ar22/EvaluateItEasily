@@ -10,5 +10,6 @@ namespace EvaluateItEasily.Core.Contracts.Repositories
         public Task<Group?> GetByMemberIdAsync(string studentId, CancellationToken ct = default);
         public Task<Group?> GetByLeaderIdAsync(string leaderId, CancellationToken ct = default);
         Task<IEnumerable<string>> GetAllAssignedStudentIdsAsync(CancellationToken ct = default);
+        public Task<Group?> GetByProposalIdAsync(int proposalId, CancellationToken ct = default);
     }
 }

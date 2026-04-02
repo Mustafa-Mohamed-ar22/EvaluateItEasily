@@ -26,7 +26,7 @@ namespace EvaluateItEasily.API.Controllers
         }
 
         [HttpGet("{proposalId}")]
-        [Authorize(Roles = "Admin,Committee")]
+        [Authorize(Roles = "Admin,Committee,Student")]
         public async Task<ActionResult<EvaluationResponse>> GetByProposalId(int proposalId,CancellationToken ct)
         {
             var result = await _evaluationService.GetByProposalIdAsync(proposalId, ct);

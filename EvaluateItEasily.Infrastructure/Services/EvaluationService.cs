@@ -1,5 +1,6 @@
 ﻿using EvaluateItEasily.Core.DTO_s.Evaluations;
 using EvaluateItEasily.Core.Settings;
+using EvaluateItEasily.Infrastructure.Errors;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Json;
 
@@ -23,8 +24,24 @@ namespace EvaluateItEasily.Infrastructure.Services
             _aiSettings = aiSettings.Value;
         }
 
-        public async Task<Result<EvaluationResponse>> GetByProposalIdAsync(int proposalId, CancellationToken ct = default)
+        public async Task<Result<EvaluationResponse>> GetByProposalIdAsync(int proposalId,CancellationToken ct = default)
         {
+            var currentUserRole = _currentUserService.GetUserRole();
+
+            if (currentUserRole == "Student")
+            {
+                var currentUserGroup = await _unitOfWork.Groups.GetByProposalIdAsync(proposalId, ct);
+
+                if (currentUserGroup is null)
+                    return Result.Failure<EvaluationResponse>(EvaluationError.ProposalNotFound);
+
+                var isMember = currentUserGroup.Members
+                    .Any(x => x.StudentId == _currentUserService.GetUserId());
+
+                if (!isMember)
+                    return Result.Failure<EvaluationResponse>(EvaluationError.ProposalNotBelongToStudent);
+            }
+
             var cached = await _cacheService.GetAsync<EvaluationResponse>(EvaluationCacheKey(proposalId), ct);
 
             if (cached is not null)
@@ -81,8 +98,9 @@ namespace EvaluateItEasily.Infrastructure.Services
                 if (aiResponse is null)
                 {
                     // Mark evaluation as failed
-                    evaluation.AIStatus = AIEvaluationStatus.Failed;
-                    _unitOfWork.Evaluations.Update(evaluation);
+                    //evaluation.AIStatus = AIEvaluationStatus.Failed;
+                    _unitOfWork.Evaluations.Delete(evaluation);
+                    proposal.Status = ProposalStatus.Pending;
                     await _unitOfWork.complete(ct);
                     return Result.Failure<EvaluationResponse>(EvaluationError.AIServiceFailed);
                 }
@@ -129,8 +147,9 @@ namespace EvaluateItEasily.Infrastructure.Services
             }
             catch
             {
-                evaluation.AIStatus = AIEvaluationStatus.Failed;
-                _unitOfWork.Evaluations.Update(evaluation);
+                _unitOfWork.Evaluations.Delete(evaluation);
+                proposal.Status = ProposalStatus.Pending;
+                _unitOfWork.Proposals.Update(proposal);
                 await _unitOfWork.complete(ct);
                 return Result.Failure<EvaluationResponse>(EvaluationError.AIServiceFailed);
             }

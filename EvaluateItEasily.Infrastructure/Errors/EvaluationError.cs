@@ -21,12 +21,16 @@ namespace EvaluateItEasily.Infrastructure.Errors
 
         public static readonly Error AIServiceFailed = new(
             "Evaluation.AIServiceFailed",
-            "AI similarity service failed to respond",
+            "AI similarity service failed to respond ... try after some seconds",
             StatusCodes.Status500InternalServerError);
 
         public static readonly Error ProposalNotPending = new(
             "Evaluation.ProposalNotPending",
             "Only pending proposals can be evaluated",
             StatusCodes.Status409Conflict);
+        public static readonly Error ProposalNotBelongToStudent = new(
+     "Evaluation.ProposalNotBelongToStudent",
+     "This proposal does not belong to your group",
+     StatusCodes.Status401Unauthorized);
     }
 }
