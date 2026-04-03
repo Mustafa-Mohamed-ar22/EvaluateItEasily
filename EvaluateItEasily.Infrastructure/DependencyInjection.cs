@@ -1,12 +1,10 @@
 ﻿using EvaluateItEasily.Core.Contracts;
-using EvaluateItEasily.Core.Contracts.Repositories;
 using EvaluateItEasily.Core.Settings;
 using EvaluateItEasily.Infrastructure.Middlewares;
 using EvaluateItEasily.Infrastructure.Options;
 using EvaluateItEasily.Infrastructure.Repositories;
 using EvaluateItEasily.Infrastructure.Services;
 using FluentValidation;
-using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -56,7 +54,9 @@ namespace EvaluateItEasily.Infrastructure
             services.AddScoped<IEvaluationRepository, EvaluationRepository>();
             services.AddScoped<IEvaluationService, EvaluationService>();
             services.AddScoped<IDecisionService,DecisionService>();
-
+            services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IAIService, AIService>();
             services.AddCors(options =>
             {
                 options.AddPolicy("ReactAccess", b =>

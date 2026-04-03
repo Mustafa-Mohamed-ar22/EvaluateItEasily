@@ -1,28 +1,18 @@
 ﻿using EvaluateItEasily.Core.DTO_s.Evaluations;
 using EvaluateItEasily.Core.Settings;
-using EvaluateItEasily.Infrastructure.Errors;
 using Microsoft.Extensions.Options;
-using System.Net.Http.Json;
 
 namespace EvaluateItEasily.Infrastructure.Services
 {
-    public class EvaluationService : IEvaluationService
+    public class EvaluationService(IUnitOfWork unitOfWork, ICacheService cacheService, ICurrentUserService currentUserService, IOptions<AISettings> aiSettings, IAIService aIServive) : IEvaluationService
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ICacheService _cacheService;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ICurrentUserService _currentUserService;
-        private AISettings _aiSettings;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly ICacheService _cacheService = cacheService;
+        private readonly ICurrentUserService _currentUserService = currentUserService;
+        private readonly IAIService _AIServive = aIServive;
+        private AISettings _aiSettings = aiSettings.Value;
         private static string EvaluationCacheKey(int proposalId) =>$"evaluations:proposal:{proposalId}";
         private static string AllEvaluationCacheKey =$"allevaluations";
-        public EvaluationService(IUnitOfWork unitOfWork, ICacheService cacheService, IHttpClientFactory httpClientFactory, ICurrentUserService currentUserService, IOptions<AISettings> aiSettings)
-        {
-            _unitOfWork = unitOfWork;
-            _cacheService = cacheService;
-            _httpClientFactory = httpClientFactory;
-            _currentUserService = currentUserService;
-            _aiSettings = aiSettings.Value;
-        }
 
         public async Task<Result<EvaluationResponse>> GetByProposalIdAsync(int proposalId,CancellationToken ct = default)
         {
@@ -85,20 +75,17 @@ namespace EvaluateItEasily.Infrastructure.Services
             await _unitOfWork.Evaluations.AddAsync(evaluation, ct);
             await _unitOfWork.complete(ct);
 
-            // update proposal status to UnderReview
             proposal.Status = ProposalStatus.UnderReview;
             _unitOfWork.Proposals.Update(proposal);
 
             try
             {
-                // Call Python AI API
+                // besmellah 
                 var aiRequest = new AISimilarityRequest(proposal.Abstract, _aiSettings.TopK);
-                var aiResponse = await CallAIApiAsync(aiRequest, ct);
+                var aiResponse = await _AIServive.CallAIApiAsync(aiRequest,ct   );
 
                 if (aiResponse is null)
                 {
-                    // Mark evaluation as failed
-                    //evaluation.AIStatus = AIEvaluationStatus.Failed;
                     _unitOfWork.Evaluations.Delete(evaluation);
                     proposal.Status = ProposalStatus.Pending;
                     await _unitOfWork.complete(ct);
@@ -109,7 +96,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                 foreach (var result in aiResponse.Results)
                 {
                     await Console.Out.WriteLineAsync(result.ProjectId.ToString());
-                    // Find matching HistoricalProject by its index from AI API
                     var historicalProject = await _unitOfWork.HistoricalProjects.GetByProjectIdAsync(result.ProjectId-1, ct);
 
                     if (historicalProject is null) continue;
@@ -125,14 +111,13 @@ namespace EvaluateItEasily.Infrastructure.Services
                     await _unitOfWork.SimilarityResults.AddAsync(similarityResult, ct);
                 }
 
-                // update evaluation with final status
                 evaluation.AIStatus = AIEvaluationStatus.Completed;
                 evaluation.MaxSimilarityScore = aiResponse.Results.Max(r => r.SimilarityScore);
                 _unitOfWork.Evaluations.Update(evaluation);
 
                 await _unitOfWork.complete(ct);
 
-                // Invalidate cashe
+                // invalidate cashe
                 await _cacheService.RemoveAsync($"proposals:{proposalId}", ct);
                 await _cacheService.RemoveAsync("proposals:all", ct);
                 await _cacheService.RemoveAsync(AllEvaluationCacheKey, ct);
@@ -154,23 +139,7 @@ namespace EvaluateItEasily.Infrastructure.Services
                 return Result.Failure<EvaluationResponse>(EvaluationError.AIServiceFailed);
             }
         }
-        private async Task<AISimilarityResponse?> CallAIApiAsync(AISimilarityRequest request,CancellationToken ct)
-        {
-            try
-            {
-                var client = _httpClientFactory.CreateClient("AI_API");
-                var response = await client.PostAsJsonAsync($"api/similarity",request,ct);
-
-                if (!response.IsSuccessStatusCode)
-                    return null;
-
-                return await response.Content.ReadFromJsonAsync<AISimilarityResponse>(cancellationToken: ct);
-            }
-            catch
-            {
-                return null;
-            }
-        }
+        
 
         public async Task<Result<IEnumerable<EvaluationResponse>>> GetAllEvaluationsAsync(CancellationToken ct = default)
         {

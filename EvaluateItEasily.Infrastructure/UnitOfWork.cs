@@ -10,7 +10,7 @@ namespace EvaluateItEasily.Infrastructure
         public IGroupRepository Groups { get; private set; }
         public IProposalRepository Proposals { get; private set; }
 
-        public IGenericRepository<Notification> Notifications { get; private set; }
+        public INotificationRepository Notifications { get; private set; }
 
         public IHistoricalProjectsRepository HistoricalProjects { get; private set; }
 
@@ -23,7 +23,7 @@ namespace EvaluateItEasily.Infrastructure
         public IGenericRepository<GroupMember> GroupMembers { get; private set; }
 
         public UnitOfWork(AppDbContext context, IGroupRepository groupRepository, 
-            IProposalRepository proposals, IGenericRepository<Notification> notifications,
+            IProposalRepository proposals, INotificationRepository notifications,
             IHistoricalProjectsRepository historicalProjects, IEvaluationRepository evaluations,
             IGenericRepository<SimilarityResult> similarityResults, IDecisionRepository decisions, IGenericRepository<GroupMember> groupMembers)
         {
