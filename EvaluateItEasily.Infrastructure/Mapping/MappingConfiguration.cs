@@ -1,9 +1,6 @@
 ﻿using EvaluateItEasily.Core.DTO_s.Evaluations;
 using EvaluateItEasily.Core.DTO_s.Groups;
-using EvaluateItEasily.Core.DTO_s.HistoricalProjects;
 using EvaluateItEasily.Core.DTO_s.Notifications;
-using EvaluateItEasily.Core.Entities;
-using Mapster;
 namespace EvaluateItEasily.Infrastructure.Mapping
 {
     public class MappingConfiguration : IRegister
@@ -50,6 +47,14 @@ namespace EvaluateItEasily.Infrastructure.Mapping
             .Map(dest => dest.DecidedByName, src => src.DecidedByUser.FullName)
             .Map(dest => dest.DecisionType, src => src.DecisionType.ToString());
 
+
+            TypeAdapterConfig<SupervisorAssignment, SupervisorAssignmentResponse>
+            .NewConfig()
+            .Map(dest => dest.ProposalTitle, src => src.Proposal.Title)
+            .Map(dest => dest.GroupName, src => src.Proposal.Group.Name)
+            .Map(dest => dest.SupervisorName, src => src.Supervisor.FullName)
+            .Map(dest => dest.SupervisorEmail, src => src.Supervisor.Email)
+            .Map(dest => dest.AssignedByName, src => src.AssignedByUser.FullName);
         }
     }
 }

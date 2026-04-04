@@ -19,6 +19,7 @@ namespace EvaluateItEasily.Infrastructure.Data
         public DbSet<SimilarityResult> SimilarityResults { get; set; }
         public DbSet<Evaluation> Evaluations { get; set; }
         public DbSet<Proposal> Proposals { get; set; }
+        public DbSet<SupervisorAssignment> SupervisorAssignments { get; set; }
         
         protected override void OnModelCreating(ModelBuilder builder)
         {

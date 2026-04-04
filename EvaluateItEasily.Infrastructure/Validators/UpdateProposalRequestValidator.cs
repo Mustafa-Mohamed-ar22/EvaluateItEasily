@@ -1,5 +1,4 @@
-﻿
-using EvaluateItEasily.Infrastructure.Validators.Common;
+﻿using EvaluateItEasily.Infrastructure.Validators.Common;
 using FluentValidation;
 
 namespace EvaluateItEasily.Infrastructure.Validators

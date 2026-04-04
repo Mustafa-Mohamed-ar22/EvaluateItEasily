@@ -2,6 +2,7 @@
 using EvaluateItEasily.Core.Contracts.Services;
 using EvaluateItEasily.Core.Entities;
 using EvaluateItEasily.Core.Results;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 namespace EvaluateItEasily.Infrastructure.Services
 {
@@ -50,7 +51,8 @@ namespace EvaluateItEasily.Infrastructure.Services
             var createResult = await _userManager.CreateAsync(user, request.Password);
             if (!createResult.Succeeded)
             {
-                return Result.Failure<AuthResponse>(AuthErrors.CreationFailed);
+                var errors = createResult.Errors.First();
+                return Result.Failure<AuthResponse>(new Error(errors.Code,errors.Description,StatusCodes.Status400BadRequest));
             }
             await _userManager.AddToRoleAsync(user, UserRole.Student.ToString());
 

@@ -15,6 +15,7 @@ namespace EvaluateItEasily.Core
         IDecisionRepository Decisions { get; }
         IEvaluationRepository Evaluations { get; }
         IHistoricalProjectsRepository HistoricalProjects { get; }
+        ISupervisorAssignmentRepository SupervisorAssignments { get; }
         Task<int> complete(CancellationToken cancellationToken = default!);
     }
 }

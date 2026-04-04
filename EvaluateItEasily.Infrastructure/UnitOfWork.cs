@@ -22,10 +22,13 @@ namespace EvaluateItEasily.Infrastructure
 
         public IGenericRepository<GroupMember> GroupMembers { get; private set; }
 
+        public ISupervisorAssignmentRepository SupervisorAssignments { get; private set; }
+
         public UnitOfWork(AppDbContext context, IGroupRepository groupRepository, 
             IProposalRepository proposals, INotificationRepository notifications,
             IHistoricalProjectsRepository historicalProjects, IEvaluationRepository evaluations,
-            IGenericRepository<SimilarityResult> similarityResults, IDecisionRepository decisions, IGenericRepository<GroupMember> groupMembers)
+            IGenericRepository<SimilarityResult> similarityResults, IDecisionRepository decisions, IGenericRepository<GroupMember> groupMembers,
+            ISupervisorAssignmentRepository supervisorAssignments)
         {
             _context = context;
             Groups = groupRepository;
@@ -36,6 +39,7 @@ namespace EvaluateItEasily.Infrastructure
             SimilarityResults = similarityResults;
             Decisions = decisions;
             GroupMembers = groupMembers;
+            SupervisorAssignments = supervisorAssignments;
         }
 
         public async Task<int> complete(CancellationToken cancellationToken = default)
