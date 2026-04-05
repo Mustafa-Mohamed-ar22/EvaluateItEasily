@@ -18,7 +18,7 @@ namespace EvaluateItEasily.API.Controllers
         }
 
         [HttpPost("{proposalId}")]
-        [Authorize(Roles = "Admin,Committee")]
+        [Authorize(Roles = "Admin,Committee,Student")]
         public async Task<ActionResult<EvaluationResponse>> TriggerEvaluation(int proposalId,CancellationToken ct)
         {
             var result = await _evaluationService.TriggerEvaluationAsync(proposalId, ct);

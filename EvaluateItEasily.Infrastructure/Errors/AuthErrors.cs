@@ -30,5 +30,17 @@ namespace EvaluateItEasily.Infrastructure.Errors
             StatusCodes.Status401Unauthorized);
         public static readonly Error CreationFailed = new Error("Auth.CreationFailed",
             "Not Complteted Operration or, Username or password is not strong", StatusCodes.Status500InternalServerError);
+
+        public static readonly Error EmailNotConfirmed = new Error("Auth.EmailNotConfirmed",
+            "Email Not Confirmed yes", StatusCodes.Status401Unauthorized);
+
+
+        public static readonly Error InvalideCode = new Error("Auth.InvalideCode",
+           "Code is Not Valid", StatusCodes.Status401Unauthorized);
+        public static readonly Error AlreadyConfirmed = new Error("Auth.AlreadyConfirmed",
+   "Email is Already Confirmed", StatusCodes.Status400BadRequest);
+
+        public static readonly Error FaliedToSendEmail = new Error("Auth.FaliedToSendEmail",
+          "Falied To Send Email", StatusCodes.Status500InternalServerError);
     }
 }

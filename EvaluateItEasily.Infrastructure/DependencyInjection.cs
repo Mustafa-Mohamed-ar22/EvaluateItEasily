@@ -56,14 +56,19 @@ namespace EvaluateItEasily.Infrastructure
             services.AddScoped<IDecisionService,DecisionService>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<ISupervisorAssignmentRepository,SupervisorAssignmentRepository>();
+            services.AddScoped<IEmailSender,EmailService>();
             services.AddScoped<IAIService, AIService>();
+            services.AddScoped<IUserService, UserService>();
+            var DomainSettings = configuration.GetSection(DomainCORS.SectionName).Get<DomainCORS>();
+
             services.AddCors(options =>
             {
                 options.AddPolicy("ReactAccess", b =>
                 {
                     b.AllowAnyHeader();
                     b.AllowAnyMethod();
-                    b.WithOrigins("http://localhost:5173");
+                    b.WithOrigins(DomainSettings!.Domain);
                 });
             });
 
@@ -81,6 +86,9 @@ namespace EvaluateItEasily.Infrastructure
         {
             services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
             services.AddOptions<JwtOptions>().BindConfiguration(JwtOptions.SectionName).ValidateDataAnnotations().ValidateOnStart();
+            services.AddOptions<EmailSettings>().BindConfiguration(EmailSettings.SectionName).ValidateDataAnnotations().ValidateOnStart();
+
+            services.AddOptions<DomainCORS>().BindConfiguration(DomainCORS.SectionName).ValidateDataAnnotations().ValidateOnStart();
             return services;
         }
 
@@ -114,7 +122,7 @@ namespace EvaluateItEasily.Infrastructure
                 options.Password.RequireUppercase = true;
                 options.Password.RequireNonAlphanumeric = false;
                 options.User.RequireUniqueEmail = true;
-                options.SignIn.RequireConfirmedEmail = false;
+                options.SignIn.RequireConfirmedEmail = true;
             })
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();

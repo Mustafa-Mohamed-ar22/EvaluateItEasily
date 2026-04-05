@@ -22,8 +22,9 @@ namespace EvaluateItEasily.API
                     In = ParameterLocation.Header,
                     Description = "Enter your JWT token here"
                 });
+                options.CustomSchemaIds(type => type.FullName);
 
-                
+
             });
 
             builder.Services.AddInfrastructure(builder.Configuration);
