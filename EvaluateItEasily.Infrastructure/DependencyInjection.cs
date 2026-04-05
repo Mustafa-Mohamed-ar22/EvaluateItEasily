@@ -61,14 +61,14 @@ namespace EvaluateItEasily.Infrastructure
             services.AddScoped<IAIService, AIService>();
             services.AddScoped<IUserService, UserService>();
             var DomainSettings = configuration.GetSection(DomainCORS.SectionName).Get<DomainCORS>();
-
+            
             services.AddCors(options =>
             {
                 options.AddPolicy("ReactAccess", b =>
                 {
                     b.AllowAnyHeader();
                     b.AllowAnyMethod();
-                    b.WithOrigins(DomainSettings!.Domain);
+                    b.WithOrigins(DomainSettings!.Domain1,DomainSettings.Domain2,DomainSettings.Domain3);
                 });
             });
 

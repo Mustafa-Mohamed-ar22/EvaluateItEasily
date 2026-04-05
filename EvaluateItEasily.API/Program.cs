@@ -43,6 +43,7 @@ namespace EvaluateItEasily.API
             }
 
             app.UseStaticFiles();
+            app.UseRouting();
             app.UseHttpsRedirection();
             app.UseCors("ReactAccess");
             app.UseAuthentication();
