@@ -1,8 +1,5 @@
-﻿using Azure.Core;
-using EvaluateItEasily.Core;
-using EvaluateItEasily.Core.DTO_s.Groups;
-using Mapster;
-using Microsoft.AspNetCore.Identity;
+﻿using EvaluateItEasily.Core.DTO_s.Groups;
+
 
 namespace EvaluateItEasily.Infrastructure.Services
 {
@@ -12,7 +9,8 @@ namespace EvaluateItEasily.Infrastructure.Services
         private readonly ICurrentUserService _currentUserService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ICacheService _cacheService;
-        private readonly string cacheKey = "AllGroups"; 
+        private readonly string cacheKey = "AllGroups";
+        private const string AvailableStudentsCacheKey = "AvailableStudents";
         public GroupService(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, UserManager<ApplicationUser> userManager,ICacheService cacheService)
         {
             _unitOfWork = unitOfWork;
@@ -40,7 +38,7 @@ namespace EvaluateItEasily.Infrastructure.Services
         {
             var currentUserId = _currentUserService.GetUserId();
 
-            var group = await _unitOfWork.Groups.GetByMemberIdAsync(currentUserId, ct);
+            var group = await _unitOfWork.Groups.GetByMemberIdAsync(currentUserId!, ct);
             if (group is null)
                 return Result.Failure<GroupResponse>(GroupErrors.NoGroupFound);
             if (group.LeaderId != currentUserId)
@@ -67,6 +65,8 @@ namespace EvaluateItEasily.Infrastructure.Services
             await _unitOfWork.complete(ct);
             await _cacheService.RemoveAsync(cacheKey,ct);
             await _cacheService.RemoveAsync($"{cacheKey}-{groupId}", ct);
+            await _cacheService.RemoveAsync(AvailableStudentsCacheKey, ct);
+
             var updated = await _unitOfWork.Groups.GetWithMembersAsync(groupId, ct);
             return Result.Success(updated.Adapt<GroupResponse>());
         }
@@ -98,6 +98,7 @@ namespace EvaluateItEasily.Infrastructure.Services
             await _unitOfWork.Groups.AddAsync(group, ct);
             await _unitOfWork.complete(ct);
             await _cacheService.RemoveAsync(cacheKey, ct);
+            await _cacheService.RemoveAsync(AvailableStudentsCacheKey, ct);
 
             var created = await _unitOfWork.Groups.GetWithMembersAsync(group.Id, ct);
             return Result.Success(created.Adapt<GroupResponse>());
@@ -150,27 +151,40 @@ namespace EvaluateItEasily.Infrastructure.Services
             await _unitOfWork.complete(ct);
             await _cacheService.RemoveAsync(cacheKey, ct);
             await _cacheService.RemoveAsync($"{cacheKey}-{groupId}", ct);
+            await _cacheService.RemoveAsync(AvailableStudentsCacheKey, ct);
 
             return Result.Success();
         }
+
         public async Task<Result<IEnumerable<UserResponse>>> GetAvailableStudentsAsync(CancellationToken ct = default)
         {
-            var allStudents = await _userManager.GetUsersInRoleAsync(UserRole.Student.ToString());
+            var currentUserId = _currentUserService.GetUserId();
 
-            var assignedStudentIds = await _unitOfWork.Groups.GetAllAssignedStudentIdsAsync(ct);
+            var cached = await _cacheService.GetAsync<List<UserResponse>>(AvailableStudentsCacheKey, ct);
 
-            var availableStudents = allStudents
-                .Where(s => s.IsActive && !assignedStudentIds.Contains(s.Id))
-                .Select(s => new UserResponse(
-                    Id: s.Id,
-                    FullName: s.FullName,
-                    Email: s.Email!,
-                    Role: UserRole.Student.ToString(),
-                    IsActive: s.IsActive,
-                    CreatedOn: s.CreatedOn
-                ));
+            if (cached is null)
+            {
+                var allStudents = await _userManager.GetUsersInRoleAsync(UserRole.Student.ToString());
+                var assignedStudentIds = await _unitOfWork.Groups.GetAllAssignedStudentIdsAsync(ct);
 
-            return Result.Success(availableStudents);
+                cached = allStudents
+                    .Where(s => s.IsActive && !assignedStudentIds.Contains(s.Id))
+                    .Select(s => new UserResponse(
+                        Id: s.Id,
+                        FullName: s.FullName,
+                        Email: s.Email!,
+                        Role: UserRole.Student.ToString(),
+                        IsActive: s.IsActive,
+                        CreatedOn: s.CreatedOn
+                    ))
+                    .ToList();
+
+                await _cacheService.SetAsync(AvailableStudentsCacheKey, cached, ct);
+            }
+
+            var result = cached.Where(s => s.Id != currentUserId);
+
+            return Result.Success(result);
         }
     }
 }

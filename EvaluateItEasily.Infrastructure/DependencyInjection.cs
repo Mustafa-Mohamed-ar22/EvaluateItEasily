@@ -45,7 +45,18 @@ namespace EvaluateItEasily.Infrastructure
             services.AddHttpContextAccessor();
             services.AddExceptionHandler<GlobalExceptionHandler>();
             services.AddProblemDetails();
+
+
             services.AddDistributedMemoryCache();
+
+
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = configuration["Redis:ConnectionString"];
+                options.InstanceName = "EvaluateItEasily";
+            });
+
+
             services.AddScoped<ICacheService, CacheService>();
             services.AddScoped<IHistoricalProjectsRepository, HistoricalProjectsRepository>();
             services.AddScoped<IDecisionRepository, DecisionRepository>();

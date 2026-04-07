@@ -1,17 +1,21 @@
 ﻿
+using EvaluateItEasily.Core.Settings;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Options;
 using System.Text;
 using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 namespace EvaluateItEasily.Infrastructure.Services
 {
     public class AuthService(UserManager<ApplicationUser> userManager, JwtProvider jwtProvider,
         RoleManager<IdentityRole> roleManager, SignInManager<ApplicationUser> signInManager,
-        IHttpContextAccessor httpContextAccessor,IEmailSender emailService,IWebHostEnvironment webHostEnvironment) : IAuthService
+        IHttpContextAccessor httpContextAccessor,IEmailSender emailService,IWebHostEnvironment webHostEnvironment,
+        IOptions<DomainCORS> options) : IAuthService
     {
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
         private readonly IEmailSender _emailService = emailService;
         private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
+        private readonly DomainCORS _domainOptions = options.Value;
 
         public async Task<Result<AuthResponse>> LoginAsync(Core.Auth.LoginRequest request, CancellationToken ct = default!)
         {
@@ -50,7 +54,7 @@ namespace EvaluateItEasily.Infrastructure.Services
             }
             await userManager.AddToRoleAsync(user, UserRole.Student.ToString());
 
-            var code = await userManager.GeneratePasswordResetTokenAsync(user);
+            var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
             try
             {
@@ -154,7 +158,7 @@ namespace EvaluateItEasily.Infrastructure.Services
             var emailBody = EmailBodyBuilder.GenerateEmailBody(_webHostEnvironment.ContentRootPath,"TemplateSendEmail", new Dictionary<string, string>
             {
                 {"{{name}}",user.FullName},
-                {"{{action_url}}",$"{origin}/auth/emailConfirmation?userId={user.Id}&code={code}"}
+                {"{{action_url}}",$"{_domainOptions.Domain1}/auth/emailConfirmation?userId={user.Id}&code={code}"}
             });
 
             await _emailService.SendEmailAsync(user.Email!, "✅ EvaluateItEasily : Verification Email", emailBody);
@@ -166,7 +170,7 @@ namespace EvaluateItEasily.Infrastructure.Services
             var emailBody = EmailBodyBuilder.GenerateEmailBody(_webHostEnvironment.ContentRootPath, "ForgetPasswordTemplate", new Dictionary<string, string>
             {
                 {"{{name}}",user.FullName},
-                {"{{action_url}}",$"{origin}/auth/forgetPassword?email={user.Email}&code={code}"}
+                {"{{action_url}}",$"{_domainOptions.Domain1}/auth/forgetPassword?email={user.Email}&code={code}"}
             });
             
             await _emailService.SendEmailAsync(user.Email!, "✅ EvaluateItEasily : Forget Password", emailBody);
