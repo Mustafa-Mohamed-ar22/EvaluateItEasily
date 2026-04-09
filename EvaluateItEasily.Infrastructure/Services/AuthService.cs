@@ -1,10 +1,8 @@
-﻿
-using EvaluateItEasily.Core.Settings;
+﻿using EvaluateItEasily.Core.Settings;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using System.Text;
-using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 namespace EvaluateItEasily.Infrastructure.Services
 {
     public class AuthService(UserManager<ApplicationUser> userManager, JwtProvider jwtProvider,

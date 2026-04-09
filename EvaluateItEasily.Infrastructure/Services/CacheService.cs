@@ -22,7 +22,7 @@ namespace EvaluateItEasily.Infrastructure.Services
             {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(20)
             };
-            await _distributedCache.SetStringAsync(key, JsonSerializer.Serialize(value), cancellationToken);
+            await _distributedCache.SetStringAsync(key, JsonSerializer.Serialize(value),options ,cancellationToken);
         }
         public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)
         {

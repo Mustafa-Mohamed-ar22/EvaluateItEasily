@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\Uploads\" />
+    <Folder Include="wwwroot\Uploads\Proposals\" />
   </ItemGroup>
 	<ItemGroup>
 		<Content Include="Templates\**">

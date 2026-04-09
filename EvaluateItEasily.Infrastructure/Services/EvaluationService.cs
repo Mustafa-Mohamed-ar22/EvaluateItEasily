@@ -82,7 +82,7 @@ namespace EvaluateItEasily.Infrastructure.Services
             {
                 // besmellah 
                 var aiRequest = new AISimilarityRequest(proposal.Abstract, _aiSettings.TopK);
-                var aiResponse = await _AIServive.CallAIApiAsync(aiRequest,ct   );
+                var aiResponse = await _AIServive.CallAIApiAsync(aiRequest,ct);
 
                 if (aiResponse is null)
                 {
@@ -139,8 +139,7 @@ namespace EvaluateItEasily.Infrastructure.Services
                 return Result.Failure<EvaluationResponse>(EvaluationError.AIServiceFailed);
             }
         }
-        
-
+   
         public async Task<Result<IEnumerable<EvaluationResponse>>> GetAllEvaluationsAsync(CancellationToken ct = default)
         {
             var cached = await _cacheService.GetAsync<IEnumerable<EvaluationResponse>>(AllEvaluationCacheKey, ct);

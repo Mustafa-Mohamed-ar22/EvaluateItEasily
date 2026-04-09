@@ -46,10 +46,6 @@ namespace EvaluateItEasily.Infrastructure
             services.AddExceptionHandler<GlobalExceptionHandler>();
             services.AddProblemDetails();
 
-
-            services.AddDistributedMemoryCache();
-
-
             services.AddStackExchangeRedisCache(options =>
             {
                 options.Configuration = configuration["Redis:ConnectionString"];

@@ -58,7 +58,8 @@ namespace EvaluateItEasily.Infrastructure.Services
             group.Members.Add(new GroupMember
             {
                 StudentId = student.Id,
-                IsLeader = false
+                IsLeader = false,
+                JoinedAt=DateTime.UtcNow,
             });
 
             _unitOfWork.Groups.Update(group);
@@ -86,13 +87,14 @@ namespace EvaluateItEasily.Infrastructure.Services
             var group = new Group
             {
                 Name = request.Name,
-                LeaderId = currentUserId
+                LeaderId = currentUserId,
             };
 
             group.Members.Add(new GroupMember
             {
                 StudentId = currentUserId,
-                IsLeader = true
+                IsLeader = true,
+                JoinedAt = DateTime.UtcNow,
             });
 
             await _unitOfWork.Groups.AddAsync(group, ct);
@@ -113,6 +115,8 @@ namespace EvaluateItEasily.Infrastructure.Services
             else
             {
                 var Dbresult = await _unitOfWork.Groups.GetWithMembersAsync(id, ct);
+                if(Dbresult is null)
+                    return Result.Failure<GroupResponse>(GroupErrors.NoGroupFound);
                 result = Dbresult.Adapt<GroupResponse>();
                 await _cacheService.SetAsync($"{cacheKey}-{id}",result, ct);
             }
