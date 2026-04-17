@@ -5,7 +5,7 @@ namespace EvaluateItEasily.Infrastructure.Validators
 {
     public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
     {
-        private static readonly string[] AllowedRoles = ["Supervisor", "Committee", "Admin"];
+        private static readonly string[] AllowedRoles = ["Supervisor", "Committee", "Admin", "TechnicalAssistant", "Student"];
 
         public CreateUserRequestValidator()
         {
@@ -26,7 +26,7 @@ namespace EvaluateItEasily.Infrastructure.Validators
             RuleFor(x => x.Role)
                 .NotEmpty().WithMessage("Role is required")
                 .Must(r => AllowedRoles.Contains(r))
-                .WithMessage("Role must be Supervisor, Committee, or Admin");
+                .WithMessage("Role must be Supervisor, Committee, Admin , TechnicalAssistant or Student");
         }
     }
 }

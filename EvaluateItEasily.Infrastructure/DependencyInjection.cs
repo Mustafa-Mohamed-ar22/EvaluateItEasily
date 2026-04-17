@@ -67,6 +67,10 @@ namespace EvaluateItEasily.Infrastructure
             services.AddScoped<IEmailSender,EmailService>();
             services.AddScoped<IAIService, AIService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ISupervisorAssignmentService, SupervisorAssignmentService>();
+            services.AddScoped<ISubmissionPeriodRepository, SubmissionPeriodRepository>();
+            services.AddScoped<ISubmissionPeriodService, SubmissionPeriodService>();
+
             var DomainSettings = configuration.GetSection(DomainCORS.SectionName).Get<DomainCORS>();
             
             services.AddCors(options =>

@@ -10,6 +10,9 @@
         public string SupervisorId { get; set; } = string.Empty;   
         public ApplicationUser Supervisor { get; set; } = default!;
 
+        // tect
+        public string TechnicalAssistantId { get; set; } = string.Empty;   
+        public ApplicationUser TechnicalAssistant { get; set; } = default!;
         public string AssignedById { get; set; } = string.Empty;   
         public ApplicationUser AssignedByUser { get; set; } = default!;
 

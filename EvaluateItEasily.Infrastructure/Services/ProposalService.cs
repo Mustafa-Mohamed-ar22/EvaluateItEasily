@@ -1,4 +1,5 @@
-﻿using EvaluateItEasily.Core.DTO_s.Proposals;
+﻿using EvaluateItEasily.Core.Contracts.Services;
+using EvaluateItEasily.Core.DTO_s.Proposals;
 using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
 namespace EvaluateItEasily.Infrastructure.Services
@@ -10,30 +11,39 @@ namespace EvaluateItEasily.Infrastructure.Services
         private readonly IFileService _fileService;
         private readonly ICacheService _cacheService;
         private readonly ILogger<ProposalService> Logger;
-        private const string AllProposalsCacheKey = "proposals:all";
+        private readonly ISubmissionPeriodService _submissionPeriodService;
         private static string ProposalCacheKey(int id) => $"proposals:{id}";
         private static string GroupProposalCacheKey(int groupId) => $"proposals:group:{groupId}";
+        private static string AllProposalsCacheKey(string? status) =>    string.IsNullOrEmpty(status)        ? "proposals:all"        : $"proposals:status:{status.ToLower()}";
 
-        public ProposalService(IUnitOfWork unitOfWork,ICurrentUserService currentUserService,IFileService fileService,ICacheService cacheService,ILogger<ProposalService> logger)
+        public ProposalService(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IFileService fileService, ICacheService cacheService, ILogger<ProposalService> logger, ISubmissionPeriodService submissionPeriodService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
             _fileService = fileService;
             _cacheService = cacheService;
             Logger = logger;
+            _submissionPeriodService = submissionPeriodService;
         }
 
-        public async Task<Result<IEnumerable<ProposalResponse>>> GetAllAsync(CancellationToken ct = default)
+        public async Task<Result<IEnumerable<ProposalResponse>>> GetAllAsync(string? status = null, CancellationToken ct = default)
         {
-            var cached = await _cacheService.GetAsync<IEnumerable<ProposalResponse>>(AllProposalsCacheKey, ct);
+            if (!string.IsNullOrEmpty(status) &&!Enum.TryParse<ProposalStatus>(status, ignoreCase: true, out _))
+                return Result.Failure<IEnumerable<ProposalResponse>>(ProposalErrors.InvalidStatus);
+
+            var cacheKey = AllProposalsCacheKey(status);
+
+            // Check cache first
+            var cached = await _cacheService.GetAsync<IEnumerable<ProposalResponse>>(cacheKey, ct);
             if (cached is not null)
-            {
-                Logger.LogError("I Entered to the Cached Results ");
                 return Result.Success(cached);
-            }
-            var proposals = await _unitOfWork.Proposals.GetAllWithDetailsAsync(ct);
+
+            // Cache miss → hit DB
+            var proposals = await _unitOfWork.Proposals.GetAllWithDetailsAsync(status, ct);
             var response = proposals.Select(MapToResponse).ToList();
-            await _cacheService.SetAsync(AllProposalsCacheKey, response, ct);
+
+            await _cacheService.SetAsync(cacheKey, response, ct);
+
             return Result.Success<IEnumerable<ProposalResponse>>(response);
         }
 
@@ -83,6 +93,11 @@ namespace EvaluateItEasily.Infrastructure.Services
 
         public async Task<Result<ProposalResponse>> CreateAsync(CreateProposalRequest request,CancellationToken ct = default)
         {
+            var periodCheck = await _submissionPeriodService.ValidateIsOpenAsync(ct);
+            if (periodCheck.IsFailure)
+                return Result.Failure<ProposalResponse>(periodCheck.Error);
+
+
             var currentUserId = _currentUserService.GetUserId();
 
             var group = await _unitOfWork.Groups.GetByMemberIdAsync(currentUserId, ct);
@@ -120,7 +135,10 @@ namespace EvaluateItEasily.Infrastructure.Services
                 await NotifyMembers(group, proposal, ct);
                 await _unitOfWork.complete(ct);
 
-                await _cacheService.RemoveAsync(AllProposalsCacheKey, ct);
+                foreach (var status in Enum.GetNames<ProposalStatus>())
+                    await _cacheService.RemoveAsync(AllProposalsCacheKey(status), ct);
+
+                await _cacheService.RemoveAsync(AllProposalsCacheKey(null), ct);
                 await _cacheService.RemoveAsync(GroupProposalCacheKey(group.Id), ct);
 
                 var created = await _unitOfWork.Proposals.GetWithDetailsAsync(proposal.Id, ct);
@@ -138,6 +156,12 @@ namespace EvaluateItEasily.Infrastructure.Services
 
         public async Task<Result<ProposalResponse>> UpdateAsync(int id,UpdateProposalRequest request,CancellationToken ct = default)
         {
+
+            var periodCheck = await _submissionPeriodService.ValidateIsOpenAsync(ct);
+            if (periodCheck.IsFailure)
+                return Result.Failure<ProposalResponse>(periodCheck.Error);
+
+
             var currentUserId = _currentUserService.GetUserId();
 
             var proposal = await _unitOfWork.Proposals.GetWithDetailsAsync(id, ct);
@@ -168,7 +192,10 @@ namespace EvaluateItEasily.Infrastructure.Services
             _unitOfWork.Proposals.Update(proposal);
             await _unitOfWork.complete(ct);
 
-            await _cacheService.RemoveAsync(AllProposalsCacheKey, ct);
+            foreach (var status in Enum.GetNames<ProposalStatus>())
+                await _cacheService.RemoveAsync(AllProposalsCacheKey(status), ct);
+
+            await _cacheService.RemoveAsync(AllProposalsCacheKey(null), ct);
             await _cacheService.RemoveAsync(ProposalCacheKey(id), ct);
             await _cacheService.RemoveAsync(GroupProposalCacheKey(proposal.GroupId), ct);
 

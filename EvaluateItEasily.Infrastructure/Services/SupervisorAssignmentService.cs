@@ -91,22 +91,33 @@ namespace EvaluateItEasily.Infrastructure.Services
                     SupervisorAssignmentErrors.ProposalNotAccepted);
 
             // Not already assigned
-            var existing = await _unitOfWork.SupervisorAssignments.GetByProposalIdAsync(request.ProposalId, ct);
+            var existing = await _unitOfWork.SupervisorAssignments
+                .GetByProposalIdAsync(request.ProposalId, ct);
             if (existing is not null)
                 return Result.Failure<SupervisorAssignmentResponse>(
                     SupervisorAssignmentErrors.AlreadyAssigned);
 
-            // Supervisor must exist
+            // Validate Supervisor
             var supervisor = await _userManager.FindByIdAsync(request.SupervisorId);
             if (supervisor is null)
                 return Result.Failure<SupervisorAssignmentResponse>(
                     SupervisorAssignmentErrors.SupervisorNotFound);
 
-            // Must have Supervisor role
-            var roles = await _userManager.GetRolesAsync(supervisor);
-            if (!roles.Contains(UserRole.Supervisor.ToString()))
+            var supervisorRoles = await _userManager.GetRolesAsync(supervisor);
+            if (!supervisorRoles.Contains("Supervisor"))
                 return Result.Failure<SupervisorAssignmentResponse>(
                     SupervisorAssignmentErrors.InvalidSupervisor);
+
+            // Validate TechnicalAssistant
+            var technicalAssistant = await _userManager.FindByIdAsync(request.TechnicalAssistantId);
+            if (technicalAssistant is null)
+                return Result.Failure<SupervisorAssignmentResponse>(
+                    SupervisorAssignmentErrors.TechnicalAssistantNotFound);
+
+            var taRoles = await _userManager.GetRolesAsync(technicalAssistant);
+            if (!taRoles.Contains("TechnicalAssistant"))
+                return Result.Failure<SupervisorAssignmentResponse>(
+                    SupervisorAssignmentErrors.InvalidTechnicalAssistant);
 
             var currentUserId = _currentUserService.GetUserId();
 
@@ -115,19 +126,30 @@ namespace EvaluateItEasily.Infrastructure.Services
             {
                 ProposalId = request.ProposalId,
                 SupervisorId = request.SupervisorId,
-                AssignedById = currentUserId,
+                TechnicalAssistantId = request.TechnicalAssistantId,
+                AssignedById = currentUserId!,
                 WorkloadNote = request.WorkloadNote,
                 AssignedAt = DateTime.UtcNow
             };
 
             await _unitOfWork.SupervisorAssignments.AddAsync(assignment, ct);
 
-            // Notify supervisor
+            // Notify Supervisor
             await _unitOfWork.Notifications.AddAsync(new Notification
             {
                 UserId = request.SupervisorId,
                 Title = "New Project Assigned",
                 Message = $"You have been assigned to supervise the project '{proposal.Title}'",
+                Type = NotificationType.SupervisorAssigned,
+                CreatedAt = DateTime.UtcNow
+            }, ct);
+
+            // Notify TechnicalAssistant
+            await _unitOfWork.Notifications.AddAsync(new Notification
+            {
+                UserId = request.TechnicalAssistantId,
+                Title = "New Project Assigned",
+                Message = $"You have been assigned as technical assistant for the project '{proposal.Title}'",
                 Type = NotificationType.SupervisorAssigned,
                 CreatedAt = DateTime.UtcNow
             }, ct);
@@ -138,8 +160,8 @@ namespace EvaluateItEasily.Infrastructure.Services
                 await _unitOfWork.Notifications.AddAsync(new Notification
                 {
                     UserId = member.StudentId,
-                    Title = "Supervisor Assigned",
-                    Message = $"Dr. {supervisor.FullName} has been assigned as your project supervisor",
+                    Title = "Supervisor & Technical Assistant Assigned",
+                    Message = $"Dr. {supervisor.FullName} has been assigned as your supervisor and {technicalAssistant.FullName} as technical assistant for your project",
                     Type = NotificationType.SupervisorAssigned,
                     CreatedAt = DateTime.UtcNow
                 }, ct);
@@ -150,6 +172,7 @@ namespace EvaluateItEasily.Infrastructure.Services
             // Invalidate cache
             await _cacheService.RemoveAsync(AllAssignmentsCacheKey, ct);
             await _cacheService.RemoveAsync(SupervisorAssignmentsCacheKey(request.SupervisorId), ct);
+            await _cacheService.RemoveAsync(SupervisorAssignmentsCacheKey(request.TechnicalAssistantId), ct);
 
             // Load full assignment for response
             var created = await _unitOfWork.SupervisorAssignments.GetWithDetailsAsync(assignment.Id, ct);

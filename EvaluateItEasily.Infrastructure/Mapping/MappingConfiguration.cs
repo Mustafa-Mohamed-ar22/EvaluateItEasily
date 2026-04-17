@@ -13,8 +13,24 @@ namespace EvaluateItEasily.Infrastructure.Mapping
                 .Map(dest => dest.FullName, src => src.Student.FullName)
                 .Map(dest => dest.Email, src => src.Student.Email);
 
-            config.NewConfig<Group, GroupResponse>()
-                .Map(dest => dest.LeaderName, src => src.Leader.FullName);
+            TypeAdapterConfig<Group, GroupResponse>
+     .NewConfig()
+     .Map(dest => dest.LeaderName, src => src.Leader.FullName)
+     .Map(dest => dest.MembersCount, src => src.Members.Count)
+     .Map(dest => dest.ProposalId, src => src.Proposal != null
+         ? src.Proposal.Id
+         : (int?)null)
+     .Map(dest => dest.ProposalStatus, src => src.Proposal != null
+         ? src.Proposal.Status.ToString()
+         : null)
+     .Map(dest => dest.SupervisorName, src => src.Proposal != null
+         && src.Proposal.SupervisorAssignment != null
+         ? src.Proposal.SupervisorAssignment.Supervisor.FullName
+         : null)
+     .Map(dest => dest.TechnicalAssistantName, src => src.Proposal != null
+         && src.Proposal.SupervisorAssignment != null
+         ? src.Proposal.SupervisorAssignment.TechnicalAssistant.FullName
+         : null);
 
             TypeAdapterConfig<HistoricalProject, HistoricalProjectResponse>
             .NewConfig()
@@ -54,6 +70,8 @@ namespace EvaluateItEasily.Infrastructure.Mapping
             .Map(dest => dest.GroupName, src => src.Proposal.Group.Name)
             .Map(dest => dest.SupervisorName, src => src.Supervisor.FullName)
             .Map(dest => dest.SupervisorEmail, src => src.Supervisor.Email)
+            .Map(dest => dest.TechnicalAssistantName, src => src.TechnicalAssistant.FullName)   
+            .Map(dest => dest.TechnicalAssistantEmail, src => src.TechnicalAssistant.Email)     
             .Map(dest => dest.AssignedByName, src => src.AssignedByUser.FullName);
         }
     }

@@ -46,5 +46,9 @@ namespace EvaluateItEasily.Infrastructure.Errors
             "Proposal.CannotDownload",
             "You are not allowed to download this proposal",
             StatusCodes.Status401Unauthorized);
+        public static readonly Error InvalidStatus = new(
+    "Proposal.InvalidStatus",
+    "Invalid status value. Valid values are: Pending, UnderReview, Accepted, Rejected, RevisionRequested",
+    StatusCodes.Status400BadRequest);
     }
 }

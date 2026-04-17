@@ -13,6 +13,9 @@ namespace EvaluateItEasily.Infrastructure.Validators
             RuleFor(x => x.SupervisorId)
                 .NotEmpty().WithMessage("Supervisor id is required");
 
+            RuleFor(x => x.TechnicalAssistantId)
+            .NotEmpty().WithMessage("Technical assistant id is required");
+
             RuleFor(x => x.WorkloadNote)
                 .MaximumLength(500).WithMessage("Workload note cannot exceed 500 characters")
                 .When(x => x.WorkloadNote is not null);

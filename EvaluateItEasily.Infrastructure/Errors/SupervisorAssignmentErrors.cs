@@ -34,5 +34,14 @@ namespace EvaluateItEasily.Infrastructure.Errors
             "SupervisorAssignment.InvalidSupervisor",
             "Assigned user must have the Supervisor role",
             StatusCodes.Status400BadRequest);
+
+        public static readonly Error TechnicalAssistantNotFound = new("SupervisorAssignment.TechnicalAssistantNotFound",
+            "Technical assistant was not found",
+            StatusCodes.Status404NotFound);
+
+        public static readonly Error InvalidTechnicalAssistant = new(
+            "SupervisorAssignment.InvalidTechnicalAssistant",
+            "Assigned user must have the TechnicalAssistant role",
+            StatusCodes.Status400BadRequest);
     }
 }

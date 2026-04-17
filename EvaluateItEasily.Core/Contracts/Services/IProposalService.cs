@@ -6,7 +6,7 @@ namespace EvaluateItEasily.Core.Contracts.Services
 {
     public interface IProposalService
     {
-        Task<Result<IEnumerable<ProposalResponse>>> GetAllAsync(CancellationToken ct = default);
+        Task<Result<IEnumerable<ProposalResponse>>> GetAllAsync(string? status = null, CancellationToken ct = default);
         Task<Result<ProposalResponse>> GetByIdAsync(int id, CancellationToken ct = default);
         Task<Result<ProposalResponse>> GetMyProposalAsync(CancellationToken ct = default);
         Task<Result<ProposalResponse>> CreateAsync(CreateProposalRequest request, CancellationToken ct = default);

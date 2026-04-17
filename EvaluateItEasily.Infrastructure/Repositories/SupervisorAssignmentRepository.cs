@@ -9,6 +9,7 @@
                 .Include(sa => sa.Proposal)
                     .ThenInclude(p => p.Group)
                 .Include(sa => sa.Supervisor)
+            .Include(sa => sa.TechnicalAssistant)
                 .Include(sa => sa.AssignedByUser)
                 .FirstOrDefaultAsync(sa => sa.Id == id, ct);
 
@@ -17,6 +18,7 @@
                 .Include(sa => sa.Proposal)
                     .ThenInclude(p => p.Group)
                 .Include(sa => sa.Supervisor)
+                .Include(sa => sa.TechnicalAssistant)
                 .Include(sa => sa.AssignedByUser)
                 .OrderByDescending(sa => sa.AssignedAt)
                 .ToListAsync(ct);
@@ -26,6 +28,7 @@
                 .Include(sa => sa.Proposal)
                     .ThenInclude(p => p.Group)
                 .Include(sa => sa.Supervisor)
+            .Include(sa => sa.TechnicalAssistant)
                 .Include(sa => sa.AssignedByUser)
                 .Where(sa => sa.SupervisorId == supervisorId)
                 .OrderByDescending(sa => sa.AssignedAt)

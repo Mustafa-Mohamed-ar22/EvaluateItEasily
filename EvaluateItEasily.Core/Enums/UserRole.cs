@@ -5,6 +5,7 @@
         Student,
         Supervisor,
         Committee,
-        Admin
+        Admin,
+        TechnicalAssistant
     }
 }

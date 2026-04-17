@@ -7,6 +7,10 @@
     string LeaderName,
     int MembersCount,
     DateTime CreatedOn,
+    int? ProposalId,
+    string? ProposalStatus,
+    string? SupervisorName,            
+    string? TechnicalAssistantName,    
     IEnumerable<GroupMemberResponse> Members
     );
 }

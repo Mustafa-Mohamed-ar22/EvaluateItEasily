@@ -23,7 +23,11 @@ namespace EvaluateItEasily.Infrastructure.Data.Config
                 .HasForeignKey(x => x.AssignedById)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            
+            builder.HasOne(sa => sa.TechnicalAssistant)
+            .WithMany()
+             .HasForeignKey(sa => sa.TechnicalAssistantId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 }

@@ -20,9 +20,9 @@ namespace EvaluateItEasily.API.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin,Committee")]
-        public async Task<ActionResult<IEnumerable<ProposalResponse>>> GetAll(CancellationToken ct)
+        public async Task<ActionResult<IEnumerable<ProposalResponse>>> GetAll([FromQuery] string? status, CancellationToken ct)
         {
-            var result = await _proposalService.GetAllAsync(ct);
+            var result = await _proposalService.GetAllAsync(status,ct);
             return result.IsSuccess ? Ok(result.Data) : result.ToProblem();
         }
 

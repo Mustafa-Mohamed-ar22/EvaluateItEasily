@@ -29,7 +29,9 @@ namespace EvaluateItEasily.Infrastructure.Services
             } else
             {
                 var dbResult = await _unitOfWork.Groups.GetAllWithMembersAsync(ct);
-                result = dbResult.Adapt<IEnumerable<GroupResponse>>();
+                if(dbResult is null)
+                    return Result.Failure<IEnumerable<GroupResponse>>(GroupErrors.NotFound);
+                result = dbResult.Adapt<IEnumerable<GroupResponse>>().ToList();
                 await _cacheService.SetAsync(cacheKey, result, ct);
             }
             return Result.Success(result);

@@ -8,15 +8,23 @@ namespace EvaluateItEasily.Infrastructure.Repositories
         {
         }
 
-       
-        public async Task<IEnumerable<Proposal>> GetAllWithDetailsAsync(CancellationToken ct = default)
-        => await _context.Proposals
-            .Include(p => p.Group)
-                .ThenInclude(g => g.Leader)
-            .Include(p => p.Group)
-                .ThenInclude(g => g.Members)
-            .OrderByDescending(p => p.SubmittedAt)
-            .ToListAsync(ct);
+
+        public async Task<IEnumerable<Proposal>> GetAllWithDetailsAsync(string? status = null,CancellationToken ct = default)
+        {
+            var query = _context.Proposals
+                .Include(p => p.Group)
+                    .ThenInclude(g => g.Leader)
+                .Include(p => p.Group)
+                    .ThenInclude(g => g.Members)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(status) &&Enum.TryParse<ProposalStatus>(status, ignoreCase: true, out var parsedStatus))
+                query = query.Where(p => p.Status == parsedStatus);
+
+            return await query
+                .OrderByDescending(p => p.SubmittedAt)
+                .ToListAsync(ct);
+        }
 
         public async Task<Proposal?> GetByGroupIdAsync(int groupId, CancellationToken ct = default)
         => await _context.Proposals

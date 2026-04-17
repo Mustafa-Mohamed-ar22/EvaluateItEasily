@@ -1,10 +1,5 @@
-﻿using EvaluateItEasily.Core.Contracts.Services;
-using EvaluateItEasily.Core.Entities;
-using EvaluateItEasily.Infrastructure.Data.Config;
+﻿using EvaluateItEasily.Infrastructure.Data.Config;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-
 namespace EvaluateItEasily.Infrastructure.Data
 {
     public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService currentUserService) : IdentityDbContext<ApplicationUser>(options)
@@ -20,7 +15,9 @@ namespace EvaluateItEasily.Infrastructure.Data
         public DbSet<Evaluation> Evaluations { get; set; }
         public DbSet<Proposal> Proposals { get; set; }
         public DbSet<SupervisorAssignment> SupervisorAssignments { get; set; }
-        
+
+        public DbSet<SubmissionPeriod> SubmissionPeriods { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.ApplyConfigurationsFromAssembly(typeof(ApplicationUserConfiguration).Assembly);

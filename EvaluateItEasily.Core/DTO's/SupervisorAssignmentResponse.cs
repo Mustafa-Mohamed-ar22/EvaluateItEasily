@@ -11,6 +11,10 @@
     string SupervisorEmail,
     string AssignedByName,
     string? WorkloadNote,
-    DateTime AssignedAt
+    DateTime AssignedAt,
+
+        string TechnicalAssistantId, 
+        string TechnicalAssistantName,   
+        string TechnicalAssistantEmail  
         );
 }

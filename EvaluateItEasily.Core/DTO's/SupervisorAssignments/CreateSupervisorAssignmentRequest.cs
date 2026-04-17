@@ -5,6 +5,7 @@ namespace EvaluateItEasily.Core.DTO_s.SupervisorAssignments
     (
     int ProposalId,
     string SupervisorId,
+    string TechnicalAssistantId,
     string? WorkloadNote
     );
 }
