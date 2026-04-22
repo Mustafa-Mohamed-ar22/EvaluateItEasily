@@ -11,12 +11,13 @@ namespace EvaluateItEasily.Core
         IGenericRepository<GroupMember> GroupMembers { get; }
 
         INotificationRepository Notifications { get; }
-        IGenericRepository<SimilarityResult> SimilarityResults { get; }
         IDecisionRepository Decisions { get; }
         IEvaluationRepository Evaluations { get; }
         IHistoricalProjectsRepository HistoricalProjects { get; }
         ISupervisorAssignmentRepository SupervisorAssignments { get; }
         ISubmissionPeriodRepository SubmissionPeriods { get; }
+        ISimilarityResultRepository SimilarityResults { get; }
+
         Task<int> complete(CancellationToken cancellationToken = default!);
     }
 }

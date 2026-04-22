@@ -18,5 +18,13 @@
                 .Where(d => d.DecisionType == decisionType)
                 .OrderByDescending(d => d.DecidedAt)
                 .ToListAsync(ct);
+        public async Task DeleteByProposalIdAsync(int proposalId, CancellationToken ct = default)
+        {
+            var decision = await _context.Decisions
+                .FirstOrDefaultAsync(d => d.ProposalId == proposalId, ct);
+
+            if (decision is not null)
+                _context.Decisions.Remove(decision);
+        }
     }
 }

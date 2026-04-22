@@ -19,5 +19,22 @@ namespace EvaluateItEasily.Infrastructure.Repositories
                 .Include(e => e.Proposal)
                 .Include(e => e.SimilarityResults)
                     .ThenInclude(sr => sr.HistoricalProject).ToListAsync(ct);
+        public async Task DeleteByProposalIdAsync(int proposalId, CancellationToken ct = default)
+        {
+            var evaluation = await _context.Evaluations
+                .FirstOrDefaultAsync(e => e.ProposalId == proposalId, ct);
+
+            if (evaluation is not null)
+            {
+                var similarityResults = await _context.SimilarityResults
+                    .Where(sr => sr.EvaluationId == evaluation.Id)
+                    .ToListAsync(ct);
+
+                if (similarityResults.Any())
+                    _context.SimilarityResults.RemoveRange(similarityResults);
+
+                _context.Evaluations.Remove(evaluation);
+            }
+        }
     }
 }

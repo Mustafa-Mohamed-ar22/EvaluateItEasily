@@ -1,5 +1,4 @@
 ﻿using EvaluateItEasily.Core.DTO_s.SupervisorAssignments;
-using Microsoft.AspNetCore.Identity;
 
 namespace EvaluateItEasily.Infrastructure.Services
 {
@@ -11,8 +10,8 @@ namespace EvaluateItEasily.Infrastructure.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private const string AllAssignmentsCacheKey = "supervisor-assignments:all";
         private static string AssignmentCacheKey(int id) =>$"supervisor-assignments:{id}";
-        private static string SupervisorAssignmentsCacheKey(string supervisorId) =>$"supervisor-assignments:supervisor:{supervisorId}";
-
+        private static string UserAssignmentsCacheKey(string userId) =>$"supervisor-assignments:user:{userId}";
+        private static readonly SemaphoreSlim _lock = new(1, 1);
         public SupervisorAssignmentService(IUnitOfWork unitOfWork,ICurrentUserService currentUserService,
             ICacheService cacheService,UserManager<ApplicationUser> userManager)
         {
@@ -24,18 +23,32 @@ namespace EvaluateItEasily.Infrastructure.Services
 
         public async Task<Result<IEnumerable<SupervisorAssignmentResponse>>> GetAllAsync(CancellationToken ct = default)
         {
-            var cached = await _cacheService.GetAsync<IEnumerable<SupervisorAssignmentResponse>>(
-                AllAssignmentsCacheKey, ct);
+            var cached = await _cacheService.GetAsync<IEnumerable<SupervisorAssignmentResponse>>(AllAssignmentsCacheKey, ct);
 
             if (cached is not null)
                 return Result.Success(cached);
 
-            var assignments = await _unitOfWork.SupervisorAssignments.GetAllWithDetailsAsync(ct);
-            var response = assignments.Adapt<IEnumerable<SupervisorAssignmentResponse>>().ToList();
+            await _lock.WaitAsync(ct);
+            try
+            {
+                // Double-check after acquiring lock
+                cached = await _cacheService.GetAsync<IEnumerable<SupervisorAssignmentResponse>>(
+                    AllAssignmentsCacheKey, ct);
 
-            await _cacheService.SetAsync(AllAssignmentsCacheKey, response, ct);
+                if (cached is not null)
+                    return Result.Success(cached);
 
-            return Result.Success<IEnumerable<SupervisorAssignmentResponse>>(response);
+                var assignments = await _unitOfWork.SupervisorAssignments.GetAllWithDetailsAsync(ct);
+                var response = assignments.Adapt<IEnumerable<SupervisorAssignmentResponse>>().ToList();
+
+                await _cacheService.SetAsync(AllAssignmentsCacheKey, response, ct);
+                return Result.Success<IEnumerable<SupervisorAssignmentResponse>>(response);
+            }
+            finally
+            {
+                _lock.Release();
+            }
+
         }
 
         public async Task<Result<SupervisorAssignmentResponse>> GetByIdAsync(int id,CancellationToken ct = default)
@@ -61,18 +74,17 @@ namespace EvaluateItEasily.Infrastructure.Services
         {
             var currentUserId = _currentUserService.GetUserId();
 
-            var cached = await _cacheService.GetAsync<IEnumerable<SupervisorAssignmentResponse>>(
-                SupervisorAssignmentsCacheKey(currentUserId), ct);
+            var cached = await _cacheService.GetAsync<IEnumerable<SupervisorAssignmentResponse>>(UserAssignmentsCacheKey(currentUserId), ct);
 
             if (cached is not null)
                 return Result.Success(cached);
 
             var assignments = await _unitOfWork.SupervisorAssignments
-                .GetBySupervisorIdAsync(currentUserId, ct);
+                .GetByUserIdAsync(currentUserId, ct);
 
             var response = assignments.Adapt<IEnumerable<SupervisorAssignmentResponse>>().ToList();
 
-            await _cacheService.SetAsync(SupervisorAssignmentsCacheKey(currentUserId), response, ct);
+            await _cacheService.SetAsync(UserAssignmentsCacheKey(currentUserId), response, ct);
 
             return Result.Success<IEnumerable<SupervisorAssignmentResponse>>(response);
         }
@@ -170,10 +182,9 @@ namespace EvaluateItEasily.Infrastructure.Services
             await _unitOfWork.complete(ct);
 
             // Invalidate cache
-            await _cacheService.RemoveAsync(AllAssignmentsCacheKey, ct);
-            await _cacheService.RemoveAsync(SupervisorAssignmentsCacheKey(request.SupervisorId), ct);
-            await _cacheService.RemoveAsync(SupervisorAssignmentsCacheKey(request.TechnicalAssistantId), ct);
-
+            await InvalidateCachesAsync(assignment.Id, request.SupervisorId, request.TechnicalAssistantId, ct);
+            await _cacheService.RemoveAsync("AllGroups", ct);
+            await _cacheService.RemoveAsync("AvailableStudents", ct);
             // Load full assignment for response
             var created = await _unitOfWork.SupervisorAssignments.GetWithDetailsAsync(assignment.Id, ct);
             var response = created!.Adapt<SupervisorAssignmentResponse>();
@@ -182,6 +193,13 @@ namespace EvaluateItEasily.Infrastructure.Services
             await _cacheService.SetAsync(AssignmentCacheKey(assignment.Id), response, ct);
 
             return Result.Success(response);
+        }
+        private async Task InvalidateCachesAsync(int assignmentId, string supervisorId, string taId, CancellationToken ct)
+        {
+            await _cacheService.RemoveAsync(AllAssignmentsCacheKey, ct);
+            await _cacheService.RemoveAsync(AssignmentCacheKey(assignmentId), ct);
+            await _cacheService.RemoveAsync(UserAssignmentsCacheKey(supervisorId), ct);
+            await _cacheService.RemoveAsync(UserAssignmentsCacheKey(taId), ct);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using EvaluateItEasily.Core.Contracts.Services;
 using EvaluateItEasily.Core.DTO_s.Proposals;
+using EvaluateItEasily.Core.Entities;
 using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
 namespace EvaluateItEasily.Infrastructure.Services
@@ -140,7 +141,7 @@ namespace EvaluateItEasily.Infrastructure.Services
 
                 await _cacheService.RemoveAsync(AllProposalsCacheKey(null), ct);
                 await _cacheService.RemoveAsync(GroupProposalCacheKey(group.Id), ct);
-
+                await _cacheService.RemoveAsync("AllGroups", ct);
                 var created = await _unitOfWork.Proposals.GetWithDetailsAsync(proposal.Id, ct);
                 var response = MapToResponse(created!);
 
@@ -154,13 +155,62 @@ namespace EvaluateItEasily.Infrastructure.Services
             }
         }
 
+        //public async Task<Result<ProposalResponse>> UpdateAsync(int id,UpdateProposalRequest request,CancellationToken ct = default)
+        //{
+
+        //    var periodCheck = await _submissionPeriodService.ValidateIsOpenAsync(ct);
+        //    if (periodCheck.IsFailure)
+        //        return Result.Failure<ProposalResponse>(periodCheck.Error);
+
+
+        //    var currentUserId = _currentUserService.GetUserId();
+
+        //    var proposal = await _unitOfWork.Proposals.GetWithDetailsAsync(id, ct);
+        //    if (proposal is null)
+        //        return Result.Failure<ProposalResponse>(ProposalErrors.NotFound);
+
+        //    if (proposal.Group.LeaderId != currentUserId)
+        //        return Result.Failure<ProposalResponse>(ProposalErrors.NotLeader);
+
+        //    if (!(proposal.Status == ProposalStatus.Pending ||
+        //          proposal.Status == ProposalStatus.RevisionRequested|| proposal.Status == ProposalStatus.Rejected))
+        //        return Result.Failure<ProposalResponse>(ProposalErrors.CannotUpdate);
+
+        //    var fileResult = await _fileService.SaveFileAsync(request.ProposalFile, ct);
+        //    if (fileResult.IsFailure)
+        //        return Result.Failure<ProposalResponse>(fileResult.Error);
+
+        //    _fileService.DeleteFile(proposal.ProposalFileUrl);
+
+        //    proposal.Title = request.Title;
+        //    proposal.Abstract = CleanText(request.Abstract);
+        //    proposal.FileName = request.ProposalFile.FileName;
+        //    proposal.ContentType = request.ProposalFile.ContentType;
+        //    proposal.StoredFileName = fileResult.Data.Item2;
+        //    proposal.FileExtension = Path.GetExtension(request.ProposalFile.FileName);
+        //    proposal.ProposalFileUrl = fileResult.Data.Item1;
+        //    _unitOfWork.Proposals.Update(proposal);
+        //    await _unitOfWork.complete(ct);
+
+        //    foreach (var status in Enum.GetNames<ProposalStatus>())
+        //        await _cacheService.RemoveAsync(AllProposalsCacheKey(status), ct);
+
+        //    await _cacheService.RemoveAsync(AllProposalsCacheKey(null), ct);
+        //    await _cacheService.RemoveAsync(ProposalCacheKey(id), ct);
+        //    await _cacheService.RemoveAsync(GroupProposalCacheKey(proposal.GroupId), ct);
+
+        //    var updated = await _unitOfWork.Proposals.GetWithDetailsAsync(proposal.Id, ct);
+        //    var response = MapToResponse(updated!);
+
+        //    await _cacheService.SetAsync(ProposalCacheKey(id), response, ct);
+
+        //    return Result.Success(response);
+        //}
         public async Task<Result<ProposalResponse>> UpdateAsync(int id,UpdateProposalRequest request,CancellationToken ct = default)
         {
-
             var periodCheck = await _submissionPeriodService.ValidateIsOpenAsync(ct);
             if (periodCheck.IsFailure)
                 return Result.Failure<ProposalResponse>(periodCheck.Error);
-
 
             var currentUserId = _currentUserService.GetUserId();
 
@@ -172,7 +222,8 @@ namespace EvaluateItEasily.Infrastructure.Services
                 return Result.Failure<ProposalResponse>(ProposalErrors.NotLeader);
 
             if (!(proposal.Status == ProposalStatus.Pending ||
-                  proposal.Status == ProposalStatus.RevisionRequested))
+                  proposal.Status == ProposalStatus.RevisionRequested ||
+                  proposal.Status == ProposalStatus.Rejected))
                 return Result.Failure<ProposalResponse>(ProposalErrors.CannotUpdate);
 
             var fileResult = await _fileService.SaveFileAsync(request.ProposalFile, ct);
@@ -180,6 +231,22 @@ namespace EvaluateItEasily.Infrastructure.Services
                 return Result.Failure<ProposalResponse>(fileResult.Error);
 
             _fileService.DeleteFile(proposal.ProposalFileUrl);
+
+            if (proposal.Status == ProposalStatus.Rejected)
+            {
+                // 1. Delete Decision
+                await _unitOfWork.Decisions.DeleteByProposalIdAsync(id, ct);
+
+                // 2. Delete SimilarityResults first — then Evaluation
+                var evaluation = await _unitOfWork.Evaluations.GetWithResultsAsync(id, ct);
+                if (evaluation is not null)
+                {
+                    await _unitOfWork.SimilarityResults.DeleteByEvaluationIdAsync(evaluation.Id, ct);
+                    await _unitOfWork.Evaluations.DeleteByProposalIdAsync(id, ct);
+                }
+                // 3. Reset status → Pending
+                proposal.Status = ProposalStatus.Pending;
+            }
 
             proposal.Title = request.Title;
             proposal.Abstract = CleanText(request.Abstract);
@@ -192,13 +259,23 @@ namespace EvaluateItEasily.Infrastructure.Services
             _unitOfWork.Proposals.Update(proposal);
             await _unitOfWork.complete(ct);
 
+            // ── Invalidate cache ──────────────────────────────────────────
             foreach (var status in Enum.GetNames<ProposalStatus>())
                 await _cacheService.RemoveAsync(AllProposalsCacheKey(status), ct);
+            await _cacheService.RemoveAsync("AllGroups", ct);
 
             await _cacheService.RemoveAsync(AllProposalsCacheKey(null), ct);
             await _cacheService.RemoveAsync(ProposalCacheKey(id), ct);
             await _cacheService.RemoveAsync(GroupProposalCacheKey(proposal.GroupId), ct);
 
+            if (proposal.Status == ProposalStatus.Pending)
+            {
+                await _cacheService.RemoveAsync($"evaluations:proposal:{id}", ct);
+                await _cacheService.RemoveAsync($"decisions:proposal:{id}", ct);
+                await _cacheService.RemoveAsync("decisions:type:rejected", ct);
+            }
+
+            // ── Load updated + cache ──────────────────────────────────────
             var updated = await _unitOfWork.Proposals.GetWithDetailsAsync(proposal.Id, ct);
             var response = MapToResponse(updated!);
 
@@ -206,7 +283,6 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             return Result.Success(response);
         }
-
         public async Task<Result<FileDownloadResponse>> DownloadProposalAsync(int id,CancellationToken ct = default)
         {
             var cached = await _cacheService.GetAsync<ProposalResponse>(ProposalCacheKey(id), ct);

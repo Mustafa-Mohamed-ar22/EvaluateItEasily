@@ -16,7 +16,6 @@ namespace EvaluateItEasily.Infrastructure
 
         public IEvaluationRepository Evaluations { get; private set; }
 
-        public IGenericRepository<SimilarityResult> SimilarityResults { get; private set; }
 
         public IDecisionRepository Decisions { get; private set; }
 
@@ -25,12 +24,13 @@ namespace EvaluateItEasily.Infrastructure
         public ISupervisorAssignmentRepository SupervisorAssignments { get; private set; }
 
         public ISubmissionPeriodRepository SubmissionPeriods { get; private set; }
+        public ISimilarityResultRepository SimilarityResults { get; private set; }
 
         public UnitOfWork(AppDbContext context, IGroupRepository groupRepository, 
             IProposalRepository proposals, INotificationRepository notifications,
             IHistoricalProjectsRepository historicalProjects, IEvaluationRepository evaluations,
-            IGenericRepository<SimilarityResult> similarityResults, IDecisionRepository decisions, IGenericRepository<GroupMember> groupMembers,
-            ISupervisorAssignmentRepository supervisorAssignments, ISubmissionPeriodRepository submissionPeriods)
+             IDecisionRepository decisions, IGenericRepository<GroupMember> groupMembers,
+            ISupervisorAssignmentRepository supervisorAssignments, ISubmissionPeriodRepository submissionPeriods, ISimilarityResultRepository similarityResults)
         {
             _context = context;
             Groups = groupRepository;

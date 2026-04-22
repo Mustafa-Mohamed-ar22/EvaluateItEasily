@@ -5,6 +5,7 @@ namespace EvaluateItEasily.Core.Contracts.Repositories
 {
     public interface IDecisionRepository : IGenericRepository<Decision>
     {
+        Task DeleteByProposalIdAsync(int proposalId, CancellationToken ct = default);
         Task<Decision?> GetByProposalIdAsync(int proposalId, CancellationToken ct = default);
         Task<IEnumerable<Decision>> GetByDecisionTypeAsync(DecisionType decisionType, CancellationToken ct = default);
 

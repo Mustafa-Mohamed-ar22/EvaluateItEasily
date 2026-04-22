@@ -70,7 +70,7 @@ namespace EvaluateItEasily.Infrastructure
             services.AddScoped<ISupervisorAssignmentService, SupervisorAssignmentService>();
             services.AddScoped<ISubmissionPeriodRepository, SubmissionPeriodRepository>();
             services.AddScoped<ISubmissionPeriodService, SubmissionPeriodService>();
-
+            services.AddScoped<ISimilarityResultRepository, SimilarityResultRepository>();
             var DomainSettings = configuration.GetSection(DomainCORS.SectionName).Get<DomainCORS>();
             
             services.AddCors(options =>

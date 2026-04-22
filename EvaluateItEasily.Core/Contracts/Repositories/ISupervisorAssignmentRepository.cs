@@ -9,5 +9,6 @@ namespace EvaluateItEasily.Core.Contracts.Repositories
         Task<IEnumerable<SupervisorAssignment>> GetAllWithDetailsAsync(CancellationToken ct = default);
         Task<IEnumerable<SupervisorAssignment>> GetBySupervisorIdAsync(string supervisorId, CancellationToken ct = default);
         Task<SupervisorAssignment?> GetByProposalIdAsync(int proposalId, CancellationToken ct = default);
+        Task<IEnumerable<SupervisorAssignment>> GetByUserIdAsync(string UserId, CancellationToken ct = default);
     }
 }

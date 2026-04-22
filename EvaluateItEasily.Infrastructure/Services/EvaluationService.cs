@@ -95,7 +95,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                 var rank = 1;
                 foreach (var result in aiResponse.Results)
                 {
-                    await Console.Out.WriteLineAsync(result.ProjectId.ToString());
                     var historicalProject = await _unitOfWork.HistoricalProjects.GetByProjectIdAsync(result.ProjectId-1, ct);
 
                     if (historicalProject is null) continue;

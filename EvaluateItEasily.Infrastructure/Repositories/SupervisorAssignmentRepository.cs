@@ -33,7 +33,16 @@
                 .Where(sa => sa.SupervisorId == supervisorId)
                 .OrderByDescending(sa => sa.AssignedAt)
                 .ToListAsync(ct);
-
+        public async Task<IEnumerable<SupervisorAssignment>> GetByUserIdAsync(string UserId, CancellationToken ct = default) =>
+            await _context.SupervisorAssignments
+                .Include(sa => sa.Proposal)
+                    .ThenInclude(p => p.Group)
+                .Include(sa => sa.Supervisor)
+            .Include(sa => sa.TechnicalAssistant)
+                .Include(sa => sa.AssignedByUser)
+                .Where(sa => sa.SupervisorId == UserId)
+                .OrderByDescending(sa => sa.AssignedAt)
+                .ToListAsync(ct);
         public async Task<SupervisorAssignment?> GetByProposalIdAsync(int proposalId, CancellationToken ct = default) =>
             await _context.SupervisorAssignments
                 .Include(sa => sa.Proposal)
