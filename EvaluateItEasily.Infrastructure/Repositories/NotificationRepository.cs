@@ -14,5 +14,9 @@ namespace EvaluateItEasily.Infrastructure.Repositories
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync(ct);
         }
+        public async Task AddRangeAsync(IEnumerable<Notification> notifications, CancellationToken ct = default)
+        {
+            await _context.Notifications.AddRangeAsync(notifications, ct);
+        }
     }
 }
