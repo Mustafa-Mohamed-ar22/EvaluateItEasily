@@ -10,6 +10,7 @@
 
         
         public ICollection<GroupMember> Members { get; set; } = [];
+        public ICollection<GroupInvitation> Invitations { get; set; } = [];
         public Proposal? Proposal { get; set; }
         // public int? ProposalId { get; set; }
 

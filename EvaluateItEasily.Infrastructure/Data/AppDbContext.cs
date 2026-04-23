@@ -15,6 +15,7 @@ namespace EvaluateItEasily.Infrastructure.Data
         public DbSet<Evaluation> Evaluations { get; set; }
         public DbSet<Proposal> Proposals { get; set; }
         public DbSet<SupervisorAssignment> SupervisorAssignments { get; set; }
+        public DbSet<GroupInvitation> GroupInvitations { get; set; }
 
         public DbSet<SubmissionPeriod> SubmissionPeriods { get; set; }
 

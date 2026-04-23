@@ -17,7 +17,7 @@ namespace EvaluateItEasily.Core
         ISupervisorAssignmentRepository SupervisorAssignments { get; }
         ISubmissionPeriodRepository SubmissionPeriods { get; }
         ISimilarityResultRepository SimilarityResults { get; }
-
+        IGroupInvitationRepository GroupInvitations { get; }
         Task<int> complete(CancellationToken cancellationToken = default!);
     }
 }

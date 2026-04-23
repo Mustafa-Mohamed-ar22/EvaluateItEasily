@@ -49,5 +49,21 @@ namespace EvaluateItEasily.Infrastructure.Errors
             "Only students can be added as group members",
                         StatusCodes.Status400BadRequest);
 
+        public static readonly Error InvitationNotFound = new("Group.InvitationNotFound",
+            "Invitation was not found",
+                            StatusCodes.Status404NotFound);
+
+        public static readonly Error InvitationAlreadySent = new("Group.InvitationAlreadySent",
+            "An invitation has already been sent to this student",
+                            StatusCodes.Status409Conflict);
+
+        public static readonly Error InvitationAlreadyHandled = new("Group.InvitationAlreadyHandled",
+            "This invitation has already been accepted or rejected",
+                            StatusCodes.Status400BadRequest);
+
+        public static readonly Error NotInvitedStudent = new("Group.NotInvitedStudent",
+                "You are not the invited student for this invitation",
+                            StatusCodes.Status401Unauthorized);
+
     }
 }

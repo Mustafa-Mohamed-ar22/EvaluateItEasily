@@ -7,7 +7,6 @@ using EvaluateItEasily.Infrastructure.Services;
 using FluentValidation;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -71,6 +70,7 @@ namespace EvaluateItEasily.Infrastructure
             services.AddScoped<ISubmissionPeriodRepository, SubmissionPeriodRepository>();
             services.AddScoped<ISubmissionPeriodService, SubmissionPeriodService>();
             services.AddScoped<ISimilarityResultRepository, SimilarityResultRepository>();
+            services.AddScoped<IGroupInvitationRepository, GroupInvitationRepository>();
             var DomainSettings = configuration.GetSection(DomainCORS.SectionName).Get<DomainCORS>();
             
             services.AddCors(options =>

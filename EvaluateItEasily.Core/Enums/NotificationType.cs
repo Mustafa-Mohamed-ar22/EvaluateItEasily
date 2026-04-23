@@ -6,6 +6,7 @@
         EvaluationComplete,
         DecisionMade,
         SupervisorAssigned,
-        PasswordReset
+        PasswordReset,
+        GroupInvitation
     }
 }

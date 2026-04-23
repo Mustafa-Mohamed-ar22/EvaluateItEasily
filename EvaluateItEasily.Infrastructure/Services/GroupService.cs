@@ -36,43 +36,43 @@ namespace EvaluateItEasily.Infrastructure.Services
             }
             return Result.Success(result);
         }
-        public async Task<Result<GroupResponse>> AddMemberAsync(int groupId, AddMemberRequest request, CancellationToken ct = default)
-        {
-            var currentUserId = _currentUserService.GetUserId();
+        //public async Task<Result<GroupResponse>> AddMemberAsync(int groupId, AddMemberRequest request, CancellationToken ct = default)
+        //{
+        //    var currentUserId = _currentUserService.GetUserId();
 
-            var group = await _unitOfWork.Groups.GetByMemberIdAsync(currentUserId!, ct);
-            if (group is null)
-                return Result.Failure<GroupResponse>(GroupErrors.NoGroupFound);
-            if (group.LeaderId != currentUserId)
-                return Result.Failure<GroupResponse>(GroupErrors.NotLeader);
-            var student = await _userManager.FindByEmailAsync(request.StudentEmail);
-            if (student is null)
-                return Result.Failure<GroupResponse>(GroupErrors.StudentNotFound);
+        //    var group = await _unitOfWork.Groups.GetByMemberIdAsync(currentUserId!, ct);
+        //    if (group is null)
+        //        return Result.Failure<GroupResponse>(GroupErrors.NoGroupFound);
+        //    if (group.LeaderId != currentUserId)
+        //        return Result.Failure<GroupResponse>(GroupErrors.NotLeader);
+        //    var student = await _userManager.FindByEmailAsync(request.StudentEmail);
+        //    if (student is null)
+        //        return Result.Failure<GroupResponse>(GroupErrors.StudentNotFound);
 
-            var roles = await _userManager.GetRolesAsync(student);
-            if (!roles.Contains("Student"))
-                return Result.Failure<GroupResponse>(GroupErrors.CannotAddNonStudent);
+        //    var roles = await _userManager.GetRolesAsync(student);
+        //    if (!roles.Contains("Student"))
+        //        return Result.Failure<GroupResponse>(GroupErrors.CannotAddNonStudent);
 
-            var existingGroup = await _unitOfWork.Groups.GetByMemberIdAsync(student.Id, ct);
-            if (existingGroup is not null)
-                return Result.Failure<GroupResponse>(GroupErrors.StudentAlreadyInGroup);
+        //    var existingGroup = await _unitOfWork.Groups.GetByMemberIdAsync(student.Id, ct);
+        //    if (existingGroup is not null)
+        //        return Result.Failure<GroupResponse>(GroupErrors.StudentAlreadyInGroup);
 
-            group.Members.Add(new GroupMember
-            {
-                StudentId = student.Id,
-                IsLeader = false,
-                JoinedAt=DateTime.UtcNow,
-            });
+        //    group.Members.Add(new GroupMember
+        //    {
+        //        StudentId = student.Id,
+        //        IsLeader = false,
+        //        JoinedAt=DateTime.UtcNow,
+        //    });
 
-            _unitOfWork.Groups.Update(group);
-            await _unitOfWork.complete(ct);
-            await _cacheService.RemoveAsync(cacheKey,ct);
-            await _cacheService.RemoveAsync($"{cacheKey}-{groupId}", ct);
-            await _cacheService.RemoveAsync(AvailableStudentsCacheKey, ct);
+        //    _unitOfWork.Groups.Update(group);
+        //    await _unitOfWork.complete(ct);
+        //    await _cacheService.RemoveAsync(cacheKey,ct);
+        //    await _cacheService.RemoveAsync($"{cacheKey}-{groupId}", ct);
+        //    await _cacheService.RemoveAsync(AvailableStudentsCacheKey, ct);
 
-            var updated = await _unitOfWork.Groups.GetWithMembersAsync(groupId, ct);
-            return Result.Success(updated.Adapt<GroupResponse>());
-        }
+        //    var updated = await _unitOfWork.Groups.GetWithMembersAsync(groupId, ct);
+        //    return Result.Success(updated.Adapt<GroupResponse>());
+        //}
 
         public async Task<Result<GroupResponse>> CreateAsync(CreateGroupRequest request, CancellationToken ct = default)
         {
@@ -192,5 +192,189 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             return Result.Success(result);
         }
+
+
+        public async Task<Result<GroupInvitationResponse>> SendInvitationAsync(int groupId,AddMemberRequest request,CancellationToken ct = default)
+        {
+            var currentUserId = _currentUserService.GetUserId();
+
+            var group = await _unitOfWork.Groups.GetWithMembersAsync(groupId, ct);
+            if (group is null)
+                return Result.Failure<GroupInvitationResponse>(GroupErrors.NotFound);
+
+            // Only leader can invite
+            if (group.LeaderId != currentUserId)
+                return Result.Failure<GroupInvitationResponse>(GroupErrors.NotLeader);
+
+            // Find student by email
+            var student = await _userManager.FindByEmailAsync(request.StudentEmail);
+            if (student is null)
+                return Result.Failure<GroupInvitationResponse>(GroupErrors.StudentNotFound);
+
+            // Must be a student role
+            var roles = await _userManager.GetRolesAsync(student);
+            if (!roles.Contains("Student"))
+                return Result.Failure<GroupInvitationResponse>(GroupErrors.CannotAddNonStudent);
+
+            // Student must not already be in a group
+            var existingGroup = await _unitOfWork.Groups.GetByMemberIdAsync(student.Id, ct);
+            if (existingGroup is not null)
+                return Result.Failure<GroupInvitationResponse>(GroupErrors.StudentAlreadyInGroup);
+
+            // No duplicate pending invitation for the same group
+            var existingInvitation = await _unitOfWork.GroupInvitations.GetPendingByGroupAndStudentAsync(groupId, student.Id, ct);
+            if (existingInvitation is not null)
+                return Result.Failure<GroupInvitationResponse>(GroupErrors.InvitationAlreadySent);
+
+            // Create invitation
+            var invitation = new GroupInvitation
+            {
+                GroupId = groupId,
+                InvitedStudentId = student.Id,
+                Status = InvitationStatus.Pending
+            };
+
+            await _unitOfWork.GroupInvitations.AddAsync(invitation, ct);
+
+            // Notify student
+            await _unitOfWork.Notifications.AddAsync(new Notification
+            {
+                UserId = student.Id,
+                Title = "Group Invitation",
+                Message = $"You have been invited to join group '{group.Name}' led by {group.Leader.FullName}. Please accept or reject the invitation.",
+                Type = NotificationType.GroupInvitation,
+                CreatedAt = DateTime.UtcNow
+            }, ct);
+
+            await _unitOfWork.complete(ct);
+
+            var created = await _unitOfWork.GroupInvitations.GetWithDetailsAsync(invitation.Id, ct);
+            return Result.Success(MapToInvitationResponse(created!));
+        }
+
+        public async Task<Result> AcceptInvitationAsync(int invitationId,CancellationToken ct = default)
+        {
+            var currentUserId = _currentUserService.GetUserId();
+
+            var invitation = await _unitOfWork.GroupInvitations.GetWithDetailsAsync(invitationId, ct);
+            if (invitation is null)
+                return Result.Failure(GroupErrors.InvitationNotFound);
+
+            // Only the invited student can accept
+            if (invitation.InvitedStudentId != currentUserId)
+                return Result.Failure(GroupErrors.NotInvitedStudent);
+
+            // Cannot handle already handled invitation
+            if (invitation.Status != InvitationStatus.Pending)
+                return Result.Failure(GroupErrors.InvitationAlreadyHandled);
+
+            // Double check student not already in a group
+            var existingGroup = await _unitOfWork.Groups.GetByMemberIdAsync(currentUserId, ct);
+            if (existingGroup is not null)
+                return Result.Failure(GroupErrors.StudentAlreadyInGroup);
+
+            // Accept invitation
+            invitation.Status = InvitationStatus.Accepted;
+            invitation.RespondedAt = DateTime.UtcNow;
+            _unitOfWork.GroupInvitations.Update(invitation);
+
+            // Add to group members
+            await _unitOfWork.GroupMembers.AddAsync(new GroupMember
+            {
+                GroupId = invitation.GroupId,
+                StudentId = currentUserId,
+                IsLeader = false
+            }, ct);
+
+            // Notify leader
+            await _unitOfWork.Notifications.AddAsync(new Notification
+            {
+                UserId = invitation.Group.LeaderId,
+                Title = "Invitation Accepted",
+                Message = $"{invitation.InvitedStudent.FullName} has accepted your invitation to join '{invitation.Group.Name}'",
+                Type = NotificationType.GroupInvitation,
+                CreatedAt = DateTime.UtcNow
+            }, ct);
+
+            await _unitOfWork.complete(ct);
+
+            await _cacheService.RemoveAsync($"{cacheKey}-{invitation.GroupId}", ct);
+            await _cacheService.RemoveAsync(cacheKey, ct);
+
+            return Result.Success();
+        }
+
+        public async Task<Result> RejectInvitationAsync(int invitationId,CancellationToken ct = default)
+        {
+            var currentUserId = _currentUserService.GetUserId();
+
+            var invitation = await _unitOfWork.GroupInvitations.GetWithDetailsAsync(invitationId, ct);
+            if (invitation is null)
+                return Result.Failure(GroupErrors.InvitationNotFound);
+
+            // Only the invited student can reject
+            if (invitation.InvitedStudentId != currentUserId)
+                return Result.Failure(GroupErrors.NotInvitedStudent);
+
+            // Cannot handle already handled invitation
+            if (invitation.Status != InvitationStatus.Pending)
+                return Result.Failure(GroupErrors.InvitationAlreadyHandled);
+
+            // Reject invitation
+            invitation.Status = InvitationStatus.Rejected;
+            invitation.RespondedAt = DateTime.UtcNow;
+            _unitOfWork.GroupInvitations.Update(invitation);
+
+            // Notify leader
+            await _unitOfWork.Notifications.AddAsync(new Notification
+            {
+                UserId = invitation.Group.LeaderId,
+                Title = "Invitation Rejected",
+                Message = $"{invitation.InvitedStudent.FullName} has rejected your invitation to join '{invitation.Group.Name}'",
+                Type = NotificationType.GroupInvitation,
+                CreatedAt = DateTime.UtcNow
+            }, ct);
+
+            await _unitOfWork.complete(ct);
+
+            return Result.Success();
+        }
+
+        public async Task<Result<IEnumerable<GroupInvitationResponse>>> GetGroupInvitationsAsync(int groupId,CancellationToken ct = default)
+        {
+            var currentUserId = _currentUserService.GetUserId();
+
+            var group = await _unitOfWork.Groups.GetWithMembersAsync(groupId, ct);
+            if (group is null)
+                return Result.Failure<IEnumerable<GroupInvitationResponse>>(GroupErrors.NotFound);
+
+            // Only leader can see group invitations
+            if (group.LeaderId != currentUserId)
+                return Result.Failure<IEnumerable<GroupInvitationResponse>>(GroupErrors.NotLeader);
+
+            var invitations = await _unitOfWork.GroupInvitations.GetByGroupIdAsync(groupId, ct);
+            return Result.Success(invitations.Select(MapToInvitationResponse));
+        }
+
+        public async Task<Result<IEnumerable<GroupInvitationResponse>>> GetMyInvitationsAsync(CancellationToken ct = default)
+        {
+            var currentUserId = _currentUserService.GetUserId();
+            var invitations = await _unitOfWork.GroupInvitations.GetByStudentIdAsync(currentUserId, ct);
+            return Result.Success(invitations.Select(MapToInvitationResponse));
+        }
+
+        // ── Private helper ────────────────────────────────────────────────
+        private static GroupInvitationResponse MapToInvitationResponse(GroupInvitation invitation) => new(
+            Id: invitation.Id,
+            GroupId: invitation.GroupId,
+            GroupName: invitation.Group.Name,
+            LeaderName: invitation.Group.Leader.FullName,
+            InvitedStudentId: invitation.InvitedStudentId,
+            InvitedStudentName: invitation.InvitedStudent.FullName,
+            InvitedStudentEmail: invitation.InvitedStudent.Email!,
+            Status: invitation.Status.ToString(),
+            CreatedOn: invitation.CreatedOn,
+            RespondedAt: invitation.RespondedAt
+        );
     }
 }

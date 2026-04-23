@@ -1,4 +1,7 @@
+using EvaluateItEasily.API.Extensions;
 using EvaluateItEasily.Infrastructure;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.OpenApi;
 
 namespace EvaluateItEasily.API
@@ -8,6 +11,8 @@ namespace EvaluateItEasily.API
         public  static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.AddKestrelConfiguration();
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();

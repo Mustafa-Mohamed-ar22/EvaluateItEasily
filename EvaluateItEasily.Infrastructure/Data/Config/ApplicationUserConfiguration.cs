@@ -24,4 +24,44 @@ namespace EvaluateItEasily.Infrastructure.Data.Config
                          .HasForeignKey("UserId");
         }
     }
+    public class GroupInvitationConfiguration : IEntityTypeConfiguration<GroupInvitation>
+    {
+        public void Configure(EntityTypeBuilder<GroupInvitation> builder)
+        {
+            builder.HasKey(gi => gi.Id);
+
+            // Prevent duplicate pending invitation for same student in same group
+            builder.HasIndex(gi => new { gi.GroupId, gi.InvitedStudentId })
+                .IsUnique();
+
+            builder.Property(gi => gi.Status)
+                .IsRequired()
+                .HasConversion<string>()
+                .HasMaxLength(20);
+
+            builder.Property(gi => gi.RespondedAt)
+                .IsRequired(false);
+
+            builder.HasOne(gi => gi.Group)
+                .WithMany(g => g.Invitations)
+                .HasForeignKey(gi => gi.GroupId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(gi => gi.InvitedStudent)
+                .WithMany()
+                .HasForeignKey(gi => gi.InvitedStudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Audit
+            builder.HasOne(gi => gi.CreatedBy)
+                .WithMany()
+                .HasForeignKey(gi => gi.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(gi => gi.UpdatedBy)
+                .WithMany()
+                .HasForeignKey(gi => gi.UpdatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+    }
 }

@@ -1,6 +1,7 @@
 ﻿using EvaluateItEasily.API.Extensions;
 using EvaluateItEasily.Core.Contracts.Services;
 using EvaluateItEasily.Core.DTO_s.Groups;
+using EvaluateItEasily.Core.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -51,14 +52,7 @@ namespace EvaluateItEasily.API.Controllers
             var result = await _groupService.CreateAsync(request,ct);
             return result.IsSuccess ? Ok(result.Data) : result.ToProblem();
         }
-        [HttpPost("{groupId}/members")]
-        [Authorize(Roles = "Student")]
-        public async Task<ActionResult<GroupResponse>> AddMember([FromRoute]int groupId, [FromBody] AddMemberRequest request,CancellationToken ct)
-        {
-            var result = await _groupService.AddMemberAsync(groupId, request,ct);
-            return result.IsSuccess ? Ok(result.Data) : result.ToProblem();
-        }
-
+        
         [HttpDelete("{groupId}/members/{studentId}")]
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> RemoveMember(int groupId, string studentId,CancellationToken ct)
@@ -72,6 +66,45 @@ namespace EvaluateItEasily.API.Controllers
         public async Task<ActionResult<IEnumerable<UserResponse>>> GetAvailableStudents(CancellationToken ct)
         {
             var result = await _groupService.GetAvailableStudentsAsync( ct);
+            return result.IsSuccess ? Ok(result.Data) : result.ToProblem();
+        }
+
+        [HttpPost("{id}/invitations")]
+        [Authorize(Roles = "Student")]
+        public async Task<ActionResult<GroupInvitationResponse>> SendInvitation(int id,[FromBody] AddMemberRequest request,CancellationToken ct)
+        {
+            var result = await _groupService.SendInvitationAsync(id,request,ct);
+            return result.IsSuccess? Ok(result.Data) : result.ToProblem();
+        }
+
+        [HttpPut("invitations/{invitationId}/accept")]
+        [Authorize(Roles = "Student")]
+        public async Task<ActionResult> AcceptInvitation(int invitationId,CancellationToken ct)
+        {
+            var result = await _groupService.AcceptInvitationAsync(invitationId,ct);
+            return result.IsSuccess ? Ok() : result.ToProblem();
+        }
+
+        [HttpPut("invitations/{invitationId}/reject")]
+        [Authorize(Roles = "Student")]
+        public async Task<ActionResult> RejectInvitation(int invitationId,CancellationToken ct)
+        {
+            var result = await _groupService.RejectInvitationAsync(invitationId, ct);
+            return result.IsSuccess ? Ok() : result.ToProblem();
+        }
+        [HttpGet("{id}/invitations")]
+        [Authorize(Roles = "Student")]
+        public async Task<ActionResult<IEnumerable<GroupInvitationResponse>>> GetGroupInvitations(int id,CancellationToken ct)
+        {
+            var result = await _groupService.GetGroupInvitationsAsync(id,ct);
+            return result.IsSuccess ? Ok(result.Data) : result.ToProblem();
+        }
+
+        [HttpGet("my-invitations")]
+        [Authorize(Roles = "Student")]
+        public async Task<ActionResult<IEnumerable<GroupInvitationResponse>>> GetMyInvitations(CancellationToken ct)
+        {
+            var result = await _groupService.GetMyInvitationsAsync(ct);
             return result.IsSuccess ? Ok(result.Data) : result.ToProblem();
         }
     }
