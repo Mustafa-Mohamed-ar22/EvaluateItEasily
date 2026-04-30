@@ -25,7 +25,7 @@ namespace EvaluateItEasily.API.Controllers
         public async Task<ActionResult<IEnumerable<GroupResponse>>> GetAll(CancellationToken ct)
         {
             var result = await _groupService.GetAllAsync(ct);
-            return result.IsSuccess ? Ok(result.Data) : result.ToProblem();
+            return result.IsSuccess ? Ok(result.Data) : result.ToProblem(); 
         }
 
 
