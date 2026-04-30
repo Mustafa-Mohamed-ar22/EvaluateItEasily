@@ -2,10 +2,11 @@
 
 namespace EvaluateItEasily.Core.DTO_s
 {
-    public record CreateProposalRequest
-    (
+    public record CreateProposalRequest(
         string Title,
         string Abstract,
-        IFormFile ProposalFile 
-        );
+        string OriginalFileName,   
+        string StoredFileName,     
+        string ContentType         
+    );
 }

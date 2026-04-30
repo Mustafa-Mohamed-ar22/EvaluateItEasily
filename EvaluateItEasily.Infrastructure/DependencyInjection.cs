@@ -1,4 +1,5 @@
-﻿using EvaluateItEasily.Core.Contracts;
+﻿
+using EvaluateItEasily.Core.Contracts;
 using EvaluateItEasily.Core.Settings;
 using EvaluateItEasily.Infrastructure.Middlewares;
 using EvaluateItEasily.Infrastructure.Options;
@@ -9,8 +10,10 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
+using Supabase;
 using System.Reflection;
 using System.Text;
 
@@ -39,7 +42,6 @@ namespace EvaluateItEasily.Infrastructure
             services.AddScoped<IGroupService,GroupService>();
             services.AddScoped<IProposalRepository,ProposalRepository>();
             services.AddScoped<IProposalService,ProposalService>();
-            services.AddScoped<IFileService,FileService>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddHttpContextAccessor();
             services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -50,6 +52,20 @@ namespace EvaluateItEasily.Infrastructure
                 options.Configuration = configuration["Redis:ConnectionString"];
                 options.InstanceName = "EvaluateItEasily";
             });
+            services.Configure<SupabaseSettings>(
+                configuration.GetSection(SupabaseSettings.SectionName));
+
+            services.Configure<SupabaseSettings>(
+     configuration.GetSection(SupabaseSettings.SectionName));
+
+            // Remove Supabase SDK singleton — use HttpClient directly
+            services.AddHttpClient<SupabaseFileService>(client =>
+            {
+                client.Timeout = TimeSpan.FromMinutes(3);   // ← allow enough time for large files
+            });
+
+            services.AddScoped<IFileService, SupabaseFileService>();
+
 
 
             services.AddScoped<ICacheService, CacheService>();

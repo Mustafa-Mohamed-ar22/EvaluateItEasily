@@ -23,5 +23,6 @@ namespace EvaluateItEasily.Core.Entities
         public Decision? Decision { get; set; }
         public SupervisorAssignment? SupervisorAssignment { get; set; }
         public HistoricalProject? HistoricalProject { get; set; }
+
     }
 }

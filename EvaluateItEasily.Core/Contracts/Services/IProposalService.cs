@@ -10,7 +10,7 @@ namespace EvaluateItEasily.Core.Contracts.Services
         Task<Result<ProposalResponse>> GetByIdAsync(int id, CancellationToken ct = default);
         Task<Result<ProposalResponse>> GetMyProposalAsync(CancellationToken ct = default);
         Task<Result<ProposalResponse>> CreateAsync(CreateProposalRequest request, CancellationToken ct = default);
+        Task<Result<(string,string)>> DownloadProposalAsync(int id, CancellationToken ct = default);
         Task<Result<ProposalResponse>> UpdateAsync(int id, UpdateProposalRequest request, CancellationToken ct = default);
-        Task<Result<FileDownloadResponse>> DownloadProposalAsync(int id, CancellationToken ct = default);
     }
 }

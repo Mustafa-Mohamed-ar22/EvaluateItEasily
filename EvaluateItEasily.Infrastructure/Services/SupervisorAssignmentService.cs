@@ -98,9 +98,9 @@ namespace EvaluateItEasily.Infrastructure.Services
                     SupervisorAssignmentErrors.ProposalNotFound);
 
             // Proposal must be Accepted
-            if (proposal.Status != ProposalStatus.Accepted)
-                return Result.Failure<SupervisorAssignmentResponse>(
-                    SupervisorAssignmentErrors.ProposalNotAccepted);
+            //if (proposal.Status != ProposalStatus.Accepted)
+            //    return Result.Failure<SupervisorAssignmentResponse>(
+            //        SupervisorAssignmentErrors.ProposalNotAccepted);
 
             // Not already assigned
             var existing = await _unitOfWork.SupervisorAssignments
@@ -185,11 +185,11 @@ namespace EvaluateItEasily.Infrastructure.Services
             await InvalidateCachesAsync(assignment.Id, request.SupervisorId, request.TechnicalAssistantId, ct);
             await _cacheService.RemoveAsync("AllGroups", ct);
             await _cacheService.RemoveAsync("AvailableStudents", ct);
-            // Load full assignment for response
+
             var created = await _unitOfWork.SupervisorAssignments.GetWithDetailsAsync(assignment.Id, ct);
             var response = created!.Adapt<SupervisorAssignmentResponse>();
 
-            // Cache new assignment
+            // cache
             await _cacheService.SetAsync(AssignmentCacheKey(assignment.Id), response, ct);
 
             return Result.Success(response);

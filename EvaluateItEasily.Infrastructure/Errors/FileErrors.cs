@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-
-namespace EvaluateItEasily.Infrastructure.Errors
+﻿namespace EvaluateItEasily.Infrastructure.Errors
 {
     public static class FileErrors
     {
@@ -21,11 +19,17 @@ namespace EvaluateItEasily.Infrastructure.Errors
 
         public static readonly Error SaveFailed = new(
             "File.SaveFailed",
-            "Failed to save the file",
+            "Failed to upload the file",
             StatusCodes.Status500InternalServerError);
+
         public static readonly Error FileNotFound = new(
-    "File.FileNotFound",
-    "File was not found on the server",
-    StatusCodes.Status404NotFound);
+            "File.FileNotFound",
+            "File was not found",
+            StatusCodes.Status404NotFound);
+
+        public static readonly Error DeleteFailed = new(
+            "File.DeleteFailed",
+            "Failed to delete the file",
+            StatusCodes.Status500InternalServerError);
     }
 }

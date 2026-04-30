@@ -3,6 +3,7 @@ using EvaluateItEasily.Core.Contracts.Services;
 using EvaluateItEasily.Core.DTO_s;
 using EvaluateItEasily.Core.DTO_s.Proposals;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EvaluateItEasily.API.Controllers
@@ -45,7 +46,7 @@ namespace EvaluateItEasily.API.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Student")]
-        public async Task<ActionResult<ProposalResponse>> Create([FromForm] CreateProposalRequest request,CancellationToken ct)
+        public async Task<ActionResult<ProposalResponse>> Create([FromBody] CreateProposalRequest request,CancellationToken ct)
         {
             var result = await _proposalService.CreateAsync(request, ct);
             return result.IsSuccess ? Ok(result.Data) : result.ToProblem();
@@ -53,20 +54,22 @@ namespace EvaluateItEasily.API.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Student")]
-        public async Task<ActionResult<ProposalResponse>> Update(int id,[FromForm] UpdateProposalRequest request,CancellationToken ct)
+        public async Task<ActionResult<ProposalResponse>> Update(int id, [FromBody] UpdateProposalRequest request, CancellationToken ct)
         {
-            var result = await _proposalService.UpdateAsync(id,request, ct);
+            var result = await _proposalService.UpdateAsync(id, request, ct);
             return result.IsSuccess ? Ok(result.Data) : result.ToProblem();
         }
 
         [HttpGet("{id}/download")]
         [Authorize(Roles = "Admin,Committee,Student")]
-        [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Download(int id, CancellationToken ct)
+        public async Task<ActionResult<string>> Download(int id, CancellationToken ct)
         {
             var result = await _proposalService.DownloadProposalAsync(id, ct);
-            return result.IsSuccess ? result.ToFileResult() : result.ToProblem();
+
+            if (result.IsFailure)
+                return result.ToProblem();
+
+            return Ok(new { downloadUrl = result.Data.Item2,previewUrl=result.Data.Item1 });
         }
     }
 }

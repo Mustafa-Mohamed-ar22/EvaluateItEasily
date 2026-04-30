@@ -1,7 +1,7 @@
 ﻿namespace EvaluateItEasily.Core.DTO_s
 {
     public record FileDownloadResponse(
-    byte[] FileBytes,
+    Stream FileStream,     
     string ContentType,
     string FileName
 );

@@ -33,9 +33,10 @@ namespace EvaluateItEasily.API.Extensions
                     _ => new BadRequestObjectResult(result.Error)
                 };
 
-            return new FileContentResult(result.Data.FileBytes, result.Data.ContentType)
+            return new FileStreamResult(result.Data.FileStream, result.Data.ContentType)
             {
-                FileDownloadName = result.Data.FileName
+                FileDownloadName = result.Data.FileName,
+                EnableRangeProcessing = true 
             };
         }
     }
