@@ -95,7 +95,7 @@ namespace EvaluateItEasily.Infrastructure
                 {
                     b.AllowAnyHeader();
                     b.AllowAnyMethod();
-                    b.WithOrigins(/*DomainSettings!.Domain1,DomainSettings.Domain2,DomainSettings.Domain3*/);
+                    b.WithOrigins(DomainSettings!.Domain1,DomainSettings.Domain2,DomainSettings.Domain3);
                 });
             });
 
