@@ -22,15 +22,32 @@ namespace EvaluateItEasily.Infrastructure.Services
             _logger = logger;
         }
 
-        public async Task<Result<IEnumerable<HistoricalProjectResponse>>> GetAllAsync(CancellationToken ct = default)
+        public async Task<Result<PaginatedResponse<HistoricalProjectResponse>>> GetAllAsync(PaginationRequest request, CancellationToken ct = default)
         {
             var cachedResults = await _cacheService.GetAsync<IEnumerable<HistoricalProjectResponse>>(AllHistoricalProjectsCacheKey, ct);
-            if(cachedResults is not null)
-                return Result.Success(cachedResults);
-            var dbResults = await _unitOfWork.HistoricalProjects.GetAllWithDetailsAsync(ct);
-            var response = dbResults.Adapt<IEnumerable<HistoricalProjectResponse>>().ToList();
-            await _cacheService.SetAsync(AllHistoricalProjectsCacheKey,response, ct);
-            return Result.Success<IEnumerable<HistoricalProjectResponse>>(response);    
+            IEnumerable<HistoricalProjectResponse> allItems;
+            if (cachedResults is not null)
+            {
+                allItems = cachedResults;
+            }
+            else
+            {
+                var dbResults = await _unitOfWork.HistoricalProjects.GetAllWithDetailsAsync(ct);
+                allItems = dbResults.Adapt<IEnumerable<HistoricalProjectResponse>>().ToList();
+                await _cacheService.SetAsync(AllHistoricalProjectsCacheKey, allItems, ct);
+            }
+            var totalCount = allItems.Count();
+            var items = allItems
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize);
+
+            var response = new PaginatedResponse<HistoricalProjectResponse>(
+                Items: items,
+                Page: request.Page,
+                PageSize: request.PageSize,
+                TotalCount: totalCount);
+
+            return Result.Success(response);
         }
 
         public async Task<Result<int>> ArchiveAcceptedProposalsAsync(ArchiveRequest request, CancellationToken ct = default)
@@ -48,7 +65,9 @@ namespace EvaluateItEasily.Infrastructure.Services
                     Abstract = item.Abstract,
                     GroupName = item.Group.Name,
                     AcademicYear = request.AcademicYear,
-                    ArchivedAt = DateTime.UtcNow
+                    ArchivedAt = DateTime.UtcNow,
+                    Domain = item.Domain,
+
                 });
             }
             await _unitOfWork.HistoricalProjects.BulkInsertAsync(projects, ct);
@@ -136,5 +155,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                 return Result.Failure<int>(HistoricalProjectErrors.ImportFailed);
             }
         }
+
     }
 }

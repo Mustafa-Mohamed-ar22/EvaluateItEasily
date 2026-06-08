@@ -52,21 +52,17 @@ namespace EvaluateItEasily.Infrastructure
                 options.Configuration = configuration["Redis:ConnectionString"];
                 options.InstanceName = "EvaluateItEasily";
             });
-            services.Configure<SupabaseSettings>(
-                configuration.GetSection(SupabaseSettings.SectionName));
+            services.Configure<SupabaseSettings>(configuration.GetSection(SupabaseSettings.SectionName));
 
-            services.Configure<SupabaseSettings>(
-     configuration.GetSection(SupabaseSettings.SectionName));
+            services.Configure<SupabaseSettings>(configuration.GetSection(SupabaseSettings.SectionName));
 
-            // Remove Supabase SDK singleton — use HttpClient directly
             services.AddHttpClient<SupabaseFileService>(client =>
             {
-                client.Timeout = TimeSpan.FromMinutes(3);   // ← allow enough time for large files
+                client.Timeout = TimeSpan.FromMinutes(3);   
             });
 
+            services.Configure<SimilarityThresholdSettings>(configuration.GetSection(SimilarityThresholdSettings.SectionName));
             services.AddScoped<IFileService, SupabaseFileService>();
-
-
 
             services.AddScoped<ICacheService, CacheService>();
             services.AddScoped<IHistoricalProjectsRepository, HistoricalProjectsRepository>();
@@ -88,7 +84,8 @@ namespace EvaluateItEasily.Infrastructure
             services.AddScoped<ISimilarityResultRepository, SimilarityResultRepository>();
             services.AddScoped<IGroupInvitationRepository, GroupInvitationRepository>();
             var DomainSettings = configuration.GetSection(DomainCORS.SectionName).Get<DomainCORS>();
-            
+            services.AddScoped<ISystemSettingRepository, SystemSettingRepository>();
+            services.AddScoped<ISystemSettingService, SystemSettingService>();
             services.AddCors(options =>
             {
                 options.AddPolicy("ReactAccess", b =>
@@ -119,7 +116,6 @@ namespace EvaluateItEasily.Infrastructure
             return services;
         }
 
-        // -----------------------------------------------
 
         private static IServiceCollection AddDatabase(
             this IServiceCollection services,

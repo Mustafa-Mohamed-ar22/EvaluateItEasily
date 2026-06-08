@@ -18,7 +18,7 @@ namespace EvaluateItEasily.Core.Entities
         public string GroupName { get; set; } = string.Empty;
         public string AcademicYear { get; set; } = string.Empty;
         public DateTime ArchivedAt { get; set; }
-
+        public string Domain { get; set; } = string.Empty;
         public ICollection<SimilarityResult> SimilarityResults { get; set; } = [];
     }
 }

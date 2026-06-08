@@ -21,5 +21,19 @@
             "User.CannotDeactivateSelf",
             "You cannot deactivate your own account",
             StatusCodes.Status400BadRequest);
+        public static readonly Error InvalidCsvFile = new(
+                "User.InvalidCsvFile",
+                "File must be a valid .csv file",
+                StatusCodes.Status422UnprocessableEntity);
+
+        public static readonly Error EmptyCsvFile = new(
+            "User.EmptyCsvFile",
+            "CSV file contains no valid records",
+            StatusCodes.Status422UnprocessableEntity);
+
+        public static readonly Error MissingCsvColumns = new(
+            "User.MissingCsvColumns",
+            "CSV must contain Name, SSN, Code columns",
+            StatusCodes.Status422UnprocessableEntity);
     }
 }

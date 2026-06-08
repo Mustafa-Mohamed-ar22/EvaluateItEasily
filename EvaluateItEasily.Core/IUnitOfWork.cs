@@ -18,6 +18,8 @@ namespace EvaluateItEasily.Core
         ISubmissionPeriodRepository SubmissionPeriods { get; }
         ISimilarityResultRepository SimilarityResults { get; }
         IGroupInvitationRepository GroupInvitations { get; }
+
+        ISystemSettingRepository SystemSettings { get; }
         Task<int> complete(CancellationToken cancellationToken = default!);
     }
 }

@@ -52,5 +52,12 @@ namespace EvaluateItEasily.API.Controllers
             var result = await _userService.ToggleActiveAsync(id, ct);
             return result.IsSuccess ? Ok() : result.ToProblem();
         }
+        [HttpPost("import-students")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<ImportStudentsResponse>> ImportStudents(IFormFile file,CancellationToken ct)
+        {
+            var result = await _userService.ImportStudentsAsync(file, ct);
+            return result.IsSuccess ? Ok(result.Data) : result.ToProblem();
+        }
     }
 }

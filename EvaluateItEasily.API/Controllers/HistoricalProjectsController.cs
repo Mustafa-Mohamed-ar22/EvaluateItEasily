@@ -20,9 +20,9 @@ namespace EvaluateItEasily.API.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin,Committee,Supervisor")]
-        public async Task<ActionResult<IEnumerable<HistoricalProjectResponse>>> GetAll(CancellationToken ct)
+        public async Task<ActionResult<PaginatedResponse<HistoricalProjectResponse>>> GetAll([FromQuery] PaginationRequest request, CancellationToken ct)
         {
-            var result = await _historicalProjectService.GetAllAsync(ct);
+            var result = await _historicalProjectService.GetAllAsync(request, ct);
             return result.IsSuccess ? Ok(result.Data) : result.ToProblem();
         }
         [HttpGet("{id}")]

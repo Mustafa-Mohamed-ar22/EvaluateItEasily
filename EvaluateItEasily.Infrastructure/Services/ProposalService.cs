@@ -1,13 +1,14 @@
-﻿using EvaluateItEasily.Core;
-using EvaluateItEasily.Core.DTO_s.Proposals;
+﻿using EvaluateItEasily.Core.DTO_s.Proposals;
 using EvaluateItEasily.Core.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.RegularExpressions;
 namespace EvaluateItEasily.Infrastructure.Services
 {
-    public class ProposalService(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IFileService fileService, ICacheService cacheService, ILogger<ProposalService> logger,
-        ISubmissionPeriodService submissionPeriodService,IOptions<SupabaseSettings> filesettings) : IProposalService
+    public class ProposalService(IUnitOfWork unitOfWork, ICurrentUserService currentUserService,
+        IFileService fileService, 
+        ICacheService cacheService, ILogger<ProposalService> logger,
+        ISubmissionPeriodService submissionPeriodService,IOptions<SupabaseSettings> filesettings,IEvaluationService evaluationService) : IProposalService
     {
         private readonly SupabaseSettings _b2Settings = filesettings.Value;
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
@@ -15,10 +16,11 @@ namespace EvaluateItEasily.Infrastructure.Services
         private readonly IFileService _fileService = fileService;
         private readonly ICacheService _cacheService = cacheService;
         private readonly ISubmissionPeriodService _submissionPeriodService = submissionPeriodService;
+        private readonly IEvaluationService _evaluationService = evaluationService;
 
         private static string ProposalCacheKey(int id) => $"proposals:{id}";
         private static string GroupProposalCacheKey(int groupId) => $"proposals:group:{groupId}";
-        private static string AllProposalsCacheKey(string? status) =>    string.IsNullOrEmpty(status)        ? "proposals:all"        : $"proposals:status:{status.ToLower()}";
+        private static string AllProposalsCacheKey(string? status) =>    string.IsNullOrEmpty(status)? "proposals:all": $"proposals:status:{status.ToLower()}";
         private static string ProposalDownloadMetadataCacheKey(int id) =>$"proposals:download-metadata:{id}";
         public async Task<Result<IEnumerable<ProposalResponse>>> GetAllAsync(string? status = null, CancellationToken ct = default)
         {
@@ -123,12 +125,26 @@ namespace EvaluateItEasily.Infrastructure.Services
                     SubmittedAt = DateTime.UtcNow,
                     Status = ProposalStatus.Pending,
                     GroupId = group.Id,
-                    ProposalFileUrl = urlResult.Data
+                    ProposalFileUrl = urlResult.Data,
+                    Domain = request.Domain
                 };
 
                 await _unitOfWork.Proposals.AddAsync(proposal, ct);
                 await NotifyMembers(group, proposal, ct);
                 await _unitOfWork.complete(ct);
+
+                // ── Run AI evaluation automatically after submission ──────────
+                // Load proposal with full details needed for evaluation
+                var savedProposal = await _unitOfWork.Proposals.GetWithDetailsAsync(proposal.Id, ct);
+
+                var evaluationResult = await _evaluationService.RunAutoEvaluationAsync(savedProposal!, ct);
+
+                if (evaluationResult.IsFailure)
+                {
+                    // no thing
+                }
+
+
 
                 // 
                 var cacheKeys = Enum.GetNames<ProposalStatus>()
@@ -202,6 +218,8 @@ namespace EvaluateItEasily.Infrastructure.Services
             proposal.StoredFileName = request.StoredFileName;
             proposal.FileExtension = Path.GetExtension(request.OriginalFileName);
             proposal.ProposalFileUrl = urlResult.Data;
+            proposal.Domain = request.Domain;
+
 
             _unitOfWork.Proposals.Update(proposal);
             await _unitOfWork.complete(ct);
@@ -224,8 +242,19 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             await Task.WhenAll(cacheRemoveTasks);
 
+            var savedProposal = await _unitOfWork.Proposals.GetWithDetailsAsync(proposal.Id, ct);
+
+            var evaluationResult = await _evaluationService.RunAutoEvaluationAsync(savedProposal!, ct);
+
+            if (evaluationResult.IsFailure)
+            {
+
+            }
+
+            // Reload final state after evaluation
             var updated = await _unitOfWork.Proposals.GetWithDetailsAsync(proposal.Id, ct);
             var response = MapToResponse(updated!);
+
             await _cacheService.SetAsync(ProposalCacheKey(id), response, ct);
 
             return Result.Success(response);
@@ -295,7 +324,8 @@ namespace EvaluateItEasily.Infrastructure.Services
             GroupId: proposal.Group.Id,
             GroupName: proposal.Group.Name,
             LeaderName: proposal.Group.Leader.FullName,
-            MembersCount: proposal.Group.Members.Count
+            MembersCount: proposal.Group.Members.Count,
+            Domain: proposal.Domain
         );
 
         private async Task NotifyMembers(EvaluateItEasily.Core.Entities.Group group, Proposal proposal, CancellationToken ct)

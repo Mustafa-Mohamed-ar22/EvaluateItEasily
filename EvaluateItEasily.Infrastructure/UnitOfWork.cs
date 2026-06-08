@@ -28,11 +28,15 @@ namespace EvaluateItEasily.Infrastructure
 
         public IGroupInvitationRepository GroupInvitations { get; private set; }
 
+        public ISystemSettingRepository SystemSettings { get; private set; }
+
         public UnitOfWork(AppDbContext context, IGroupRepository groupRepository, 
             IProposalRepository proposals, INotificationRepository notifications,
             IHistoricalProjectsRepository historicalProjects, IEvaluationRepository evaluations,
              IDecisionRepository decisions, IGenericRepository<GroupMember> groupMembers,
-            ISupervisorAssignmentRepository supervisorAssignments, ISubmissionPeriodRepository submissionPeriods, ISimilarityResultRepository similarityResults, IGroupInvitationRepository groupInvitations)
+            ISupervisorAssignmentRepository supervisorAssignments, ISubmissionPeriodRepository submissionPeriods,
+            ISimilarityResultRepository similarityResults, IGroupInvitationRepository groupInvitations, 
+            ISystemSettingRepository systemSettings)
         {
             _context = context;
             Groups = groupRepository;
@@ -46,6 +50,7 @@ namespace EvaluateItEasily.Infrastructure
             SupervisorAssignments = supervisorAssignments;
             SubmissionPeriods = submissionPeriods;
             GroupInvitations = groupInvitations;
+            SystemSettings = systemSettings;
         }
 
         public async Task<int> complete(CancellationToken cancellationToken = default)

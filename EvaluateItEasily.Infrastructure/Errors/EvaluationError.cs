@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-
-namespace EvaluateItEasily.Infrastructure.Errors
+﻿namespace EvaluateItEasily.Infrastructure.Errors
 {
     public class EvaluationError
     {
@@ -29,8 +27,12 @@ namespace EvaluateItEasily.Infrastructure.Errors
             "Only pending proposals can be evaluated",
             StatusCodes.Status409Conflict);
         public static readonly Error ProposalNotBelongToStudent = new(
-     "Evaluation.ProposalNotBelongToStudent",
-     "This proposal does not belong to your group",
-     StatusCodes.Status401Unauthorized);
+                 "Evaluation.ProposalNotBelongToStudent",
+        "This proposal does not belong to your group",
+                      StatusCodes.Status401Unauthorized);
+
+        public static readonly Error AutoRejected = new("Evaluation.AutoRejected",
+    "Proposal was automatically rejected due to high similarity score",
+                   StatusCodes.Status422UnprocessableEntity);
     }
 }

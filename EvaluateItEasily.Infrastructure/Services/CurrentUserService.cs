@@ -1,7 +1,4 @@
-﻿using EvaluateItEasily.Core.Contracts.Services;
-using Microsoft.AspNetCore.Http;
-
-using System.Security.Claims;
+﻿using System.Security.Claims;
 
 namespace EvaluateItEasily.Infrastructure.Services
 {

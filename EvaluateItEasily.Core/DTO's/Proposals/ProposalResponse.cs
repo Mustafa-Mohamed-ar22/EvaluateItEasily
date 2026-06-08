@@ -11,8 +11,9 @@
         int GroupId,
         string GroupName,
         string LeaderName,
-        int MembersCount
-,
+        int MembersCount,
         string FileName,
-        string ContentType);
+        string ContentType,
+        string Domain
+        );
 }

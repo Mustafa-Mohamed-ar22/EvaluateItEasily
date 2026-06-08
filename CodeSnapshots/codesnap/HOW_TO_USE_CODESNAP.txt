@@ -1,0 +1,231 @@
+﻿CodeSnap Instructions
+======================
+CodeSnap has no CLI, so the last steps are manual.
+This script has already configured your workspace.
+
+CodeSnap will now:
+  - Save images automatically (no copy-paste needed)
+  - Save to: E:\dot NET framework\EF-Core\BackToASP.NET\API's\EvaluateItEasily\CodeSnapshots\codesnap
+  - Show line numbers and window title
+
+STEPS PER FILE:
+  1. Open VSCode in your project
+  2. Open a .cs file
+  3. Press Ctrl+A  (select all)
+  4. Press Ctrl+Shift+P  ->  type CodeSnap  ->  Enter
+  5. Click the shutter button  ->  image saved!
+
+FILES TO CAPTURE (212 total):
+  - Program.cs
+  - AccountController.cs
+  - AuthController.cs
+  - DecisionsController.cs
+  - EvaluationsController.cs
+  - FilesController.cs
+  - GroupsController.cs
+  - HistoricalProjectsController.cs
+  - NotificationsController.cs
+  - ProposalsController.cs
+  - SubmissionPeriodsController.cs
+  - SupervisorAssignmentsController.cs
+  - UsersController.cs
+  - KestrelExtensions.cs
+  - ResultExtensions.cs
+  - IUnitOfWork.cs
+  - IGenericRepository.cs
+  - IDecisionRepository.cs
+  - IEvaluationRepository.cs
+  - IGroupInvitationRepository.cs
+  - IGroupRepository.cs
+  - IHistoricalProjectsRepository.cs
+  - INotificationRepository.cs
+  - IProposalRepository.cs
+  - ISimilarityResultRepository.cs
+  - ISubmissionPeriodRepository.cs
+  - ISupervisorAssignmentRepository.cs
+  - IAIService.cs
+  - IAuthService.cs
+  - ICacheService.cs
+  - ICurrentUserService.cs
+  - IDecisionService.cs.cs
+  - IEvaluationService.cs
+  - IFileService.cs
+  - IGroupService.cs
+  - IHistoricalProjectService.cs
+  - INotificationService.cs
+  - IProposalService.cs
+  - ISubmissionPeriodService.cs
+  - ISupervisorAssignmentService.cs
+  - IUserService.cs
+  - SupervisorAssignmentResponse.cs
+  - ChangePasswordRequest.cs
+  - AuthResponse.cs
+  - ConfirmEmailRequest.cs
+  - ForgotPasswordRequest.cs
+  - LoginRequest.cs
+  - RefreshTokenRequest.cs
+  - RegisterRequest.cs
+  - ResendConfirmationEmailRequest.cs
+  - ResetPasswordRequest.cs
+  - CreateDecisionRequest.cs
+  - DecisionResponse.cs
+  - DecisionTypeRequest.cs
+  - AISimilarityRequest.cs
+  - AISimilarityResponse.cs
+  - AISimilarProject.cs
+  - EvaluationResponse.cs
+  - SimilarityResultResponse.cs
+  - PresignedUploadResponse.cs
+  - AddMemberRequest.cs
+  - CreateGroupRequest.cs
+  - GroupInvitationResponse.cs
+  - GroupMemberResponse.cs
+  - GroupResponse.cs
+  - UserResponse.cs
+  - ArchiveRequest.cs
+  - HistoricalProjectResponse.cs
+  - ImportCsvRequest.cs
+  - NotificationResponse.cs
+  - CreateProposalRequest.cs
+  - FileDownloadResponse.cs
+  - ProposalDownloadResponse.cs
+  - ProposalResponse.cs
+  - UpdateProposalRequest.cs
+  - SetSubmissionPeriod.cs
+  - SubmissionPeriodResponse.cs
+  - CreateSupervisorAssignmentRequest.cs
+  - CreateUserRequest.cs
+  - UpdateUserRequest.cs
+  - UserResponse.cs
+  - ApplicationUser.cs
+  - AuditableEntity.cs
+  - Decision.cs
+  - Evaluation.cs
+  - Group.cs
+  - GroupInvitation.cs
+  - GroupMember.cs
+  - HistoricalProject.cs
+  - Notification.cs
+  - Proposal.cs
+  - RefreshToken.cs
+  - SimilarityResult.cs
+  - SubmissionPeriod.cs
+  - SupervisorAssignment.cs
+  - AIEvaluationStatus.cs
+  - DecisionType.cs
+  - InvitationStatus.cs
+  - NotificationType.cs
+  - ProposalStatus.cs
+  - UserRole.cs
+  - Error.cs
+  - Result.cs
+  - AISettings.cs
+  - DomainCORS.cs
+  - EmailSettings.cs
+  - FileSettings.cs
+  - JwtOptions.cs
+  - SupabaseSettings.cs
+  - DataSeeder.cs
+  - DependencyInjection.cs
+  - GenericRepository.cs
+  - Globals.cs
+  - UnitOfWork.cs
+  - AppDbContext.cs
+  - ApplicationUserConfiguration.cs
+  - DecisionConfiguration.cs
+  - EvaluationConfiguration.cs
+  - GroupConfiguration.cs
+  - GroupMemberConfiguration.cs
+  - HistoricalProjectConfiguration.cs
+  - NotificationConfiguration.cs
+  - ProposalConfiguration.cs
+  - SimilarityResultConfiguration.cs
+  - SubmissionPeriodConfiguration.cs
+  - SupervisorAssignmentConfiguration.cs
+  - AuthErrors.cs
+  - DecisionErrors.cs
+  - EvaluationError.cs
+  - FileErrors.cs
+  - GroupErrors.cs
+  - HistoricalProjectErrors.cs
+  - NotificationErrors.cs
+  - ProposalErrors.cs
+  - SubmissionPeriodErrors.cs
+  - SupervisorAssignmentErrors.cs
+  - UserErrors.cs
+  - EmailBodyBuilder.cs
+  - MappingConfiguration.cs
+  - GlobalExceptionHandler.cs
+  - 20260306034154_besmellah.cs
+  - 20260306034154_besmellah.Designer.cs
+  - 20260306052138_FirstRealMigration.cs
+  - 20260306052138_FirstRealMigration.Designer.cs
+  - 20260306053606_UpdateOwnedRefreshToken.cs
+  - 20260306053606_UpdateOwnedRefreshToken.Designer.cs
+  - 20260308040932_Updata Relationship between Group and GroupMember to be Cascade.cs
+  - 20260308040932_Updata Relationship between Group and GroupMember to be Cascade.Designer.cs
+  - 20260308041100_Updata Relationship between Group and GroupMember to be Cascade2.cs
+  - 20260308041100_Updata Relationship between Group and GroupMember to be Cascade2.Designer.cs
+  - 20260312155635_Adding Proposal File Details.cs
+  - 20260312155635_Adding Proposal File Details.Designer.cs
+  - 20260313015619_Update File Name Check Condition.cs
+  - 20260313015619_Update File Name Check Condition.Designer.cs
+  - 20260313022938_Update File Name Check Condition again.cs
+  - 20260313022938_Update File Name Check Condition again.Designer.cs
+  - 20260315001435_Updating Name and abstrct capacity in historical project.cs
+  - 20260315001435_Updating Name and abstrct capacity in historical project.Designer.cs
+  - 20260411130346_Adding Technical Assistant role.cs
+  - 20260411130346_Adding Technical Assistant role.Designer.cs
+  - 20260417091159_FixedSubmissionPeriod.cs
+  - 20260417091159_FixedSubmissionPeriod.Designer.cs
+  - 20260423002816_GroupInvitations.cs
+  - 20260423002816_GroupInvitations.Designer.cs
+  - 20260425085646_field file id.cs
+  - 20260425085646_field file id.Designer.cs
+  - 20260425095301_remove field file id.cs
+  - 20260425095301_remove field file id.Designer.cs
+  - AppDbContextModelSnapshot.cs
+  - DecisionRepository.cs
+  - EvaluationRepository.cs
+  - GroupInvitationRepository.cs
+  - GroupRepository.cs
+  - HistoricalProjectsRepository.cs
+  - NotificationRepository.cs
+  - ProposalRepository.cs
+  - SimilarityResultRepository.cs
+  - SubmissionPeriodRepository.cs
+  - SupervisorAssignmentRepository.cs
+  - AIService.cs
+  - AuthService.cs
+  - CacheService.cs
+  - CurrentUserService.cs
+  - DecisionService.cs
+  - EmailService.cs
+  - EvaluationService.cs
+  - GroupService.cs
+  - HistoricalProjectService.cs
+  - JwtProvider.cs
+  - NotificationService.cs
+  - ProposalService.cs
+  - SubmissionPeriodService.cs
+  - SupabaseFileService.cs
+  - SupervisorAssignmentService.cs
+  - UserService.cs
+  - B2AuthorizeResponse.cs
+  - ChangePasswordRequestValidator.cs
+  - CreateDecisionRequestValidator.cs
+  - CreateProposalRequestValidator.cs
+  - CreateSupervisorAssignmentRequestValidator.cs
+  - CreateUserRequestValidator.cs
+  - DecisionTypeRequestValidator.cs
+  - ForgotPasswordRequestValidator.cs
+  - ImportCsvRequestValidator.cs
+  - LoginRequestValidator.cs
+  - RegisterRequestValidator.cs
+  - SetSubmissionPeriodRequestValidator.cs
+  - UpdateProposalRequestValidator.cs
+  - UpdateUserRequestValidator.cs
+  - ValidateFileContent.cs
+  - ValidateFileName.cs
+  - ValidateFileSize.cs
+

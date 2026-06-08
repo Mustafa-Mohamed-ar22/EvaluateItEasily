@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 namespace EvaluateItEasily.Infrastructure.Services
 {
@@ -17,19 +18,26 @@ namespace EvaluateItEasily.Infrastructure.Services
 
         public async Task<Result<AuthResponse>> LoginAsync(Core.Auth.LoginRequest request, CancellationToken ct = default!)
         {
-            var user = await userManager.FindByEmailAsync(request.Email);
+            var normalizedEmail = NormalizeToEmail(request.Email);
+
+            var user = await userManager.FindByEmailAsync(normalizedEmail);
             if (user is null)
                 return Result.Failure<AuthResponse>(AuthErrors.InvalidCredentials);
-            if(!user.IsActive)
+
+            if (!user.IsActive)
                 return Result.Failure<AuthResponse>(AuthErrors.InactiveUser);
-            var result = await signInManager.PasswordSignInAsync(user, request.Password,false,false);
-            if(result.Succeeded)
+
+            var result = await signInManager.PasswordSignInAsync(user, request.Password, false, false);
+            if (result.Succeeded)
                 return await BuildAuthResponseAsync(user);
-            
-            
+
             return Result.Failure<AuthResponse>(result.IsNotAllowed ? AuthErrors.EmailNotConfirmed : AuthErrors.InvalidCredentials);
         }
+        private static bool IsEmail(string value) =>
+            new EmailAddressAttribute().IsValid(value);
 
+        private static string NormalizeToEmail(string value) =>
+            IsEmail(value) ? value : $"{value}@students.local";
 
         public async Task<Result> RegisterAsync(Core.Auth.RegisterRequest request, CancellationToken ct = default)
         {

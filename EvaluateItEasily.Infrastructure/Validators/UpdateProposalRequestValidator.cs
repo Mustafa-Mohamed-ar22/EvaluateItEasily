@@ -31,6 +31,9 @@ namespace EvaluateItEasily.Infrastructure.Validators
             RuleFor(x => x.ContentType)
                 .NotEmpty().WithMessage("Content type is required")
                 .Must(BeAValidPdfContentType).WithMessage("Only PDF files are allowed");
+            RuleFor(x => x.Domain)
+                .NotEmpty().WithMessage("Domain is required")
+                .MaximumLength(100).WithMessage("Domain cannot exceed 100 characters");
         }
         private bool BeAValidFileName(string fileName)
         {

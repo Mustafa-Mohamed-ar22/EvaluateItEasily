@@ -1,4 +1,5 @@
 ﻿using EvaluateItEasily.Core.DTO_s.Evaluations;
+using EvaluateItEasily.Core.Entities;
 using EvaluateItEasily.Core.Results;
 
 namespace EvaluateItEasily.Core.Contracts.Services
@@ -8,5 +9,7 @@ namespace EvaluateItEasily.Core.Contracts.Services
         Task<Result<EvaluationResponse>> TriggerEvaluationAsync(int proposalId, CancellationToken ct = default);
         Task<Result<EvaluationResponse>> GetByProposalIdAsync(int proposalId, CancellationToken ct = default);
         Task<Result<IEnumerable<EvaluationResponse>>> GetAllEvaluationsAsync(CancellationToken ct = default);
+        Task<Result> RunAutoEvaluationAsync(Proposal proposal, CancellationToken ct = default); 
+
     }
 }

@@ -2,6 +2,8 @@
 using EvaluateItEasily.Core.DTO_s.Users;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.WebUtilities;
+using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Text;
 
 namespace EvaluateItEasily.Infrastructure.Services
@@ -106,7 +108,6 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             await _cacheService.RemoveAsync(AllUsersCacheKey, ct);
             await _cacheService.RemoveAsync(UsersByRoleCacheKey(request.Role), ct);
-            // ✅ Removed redundant SetAsync for individual user
 
             return Result.Success(response);
         }
@@ -197,6 +198,115 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             await _emailService.SendEmailAsync(user.Email!,"✅ EvaluateItEasily : Welcome Email",emailBody);
         }
+
+        public async Task<Result<ImportStudentsResponse>> ImportStudentsAsync(IFormFile file,CancellationToken ct = default)
+        {
+            // Validate file
+            if (file is null || file.Length == 0)
+                return Result.Failure<ImportStudentsResponse>(UserErrors.InvalidCsvFile);
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (extension != ".csv")
+                return Result.Failure<ImportStudentsResponse>(UserErrors.InvalidCsvFile);
+
+            try
+            {
+                using var reader = new StreamReader(file.OpenReadStream());
+                using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+
+                // Validate headers
+                await csv.ReadAsync();
+                csv.ReadHeader();
+
+                var headers = csv.HeaderRecord ?? [];
+                if (!headers.Contains("Name") ||
+                    !headers.Contains("SSN") ||
+                    !headers.Contains("Code"))
+                    return Result.Failure<ImportStudentsResponse>(UserErrors.MissingCsvColumns);
+
+                var totalCount = 0;
+                var successCount = 0;
+                var failedEntries = new List<string>();
+
+                while (await csv.ReadAsync())
+                {
+                    var name = csv.GetField("Name")?.Trim();
+                    var ssn = csv.GetField("SSN")?.Trim();
+                    var code = csv.GetField("Code")?.Trim();
+
+                    // Skip empty rows
+                    if (string.IsNullOrWhiteSpace(name) ||
+                        string.IsNullOrWhiteSpace(ssn) ||
+                        string.IsNullOrWhiteSpace(code))
+                        continue;
+
+                    totalCount++;
+
+                    try
+                    {
+                        // ✅ Normalize: real email stays as-is, SSN becomes "29801051234567@students.local"
+                        var normalizedEmail = NormalizeToEmail(ssn);
+
+                        // ✅ Check both the normalized email AND raw value to avoid duplicates
+                        var existing = await _userManager.FindByEmailAsync(normalizedEmail)
+                                    ?? await _userManager.FindByNameAsync(ssn);
+
+                        if (existing is not null)
+                        {
+                            failedEntries.Add($"{name} (SSN: {ssn}) — already exists");
+                            continue;
+                        }
+
+                        var user = new ApplicationUser
+                        {
+                            FullName = name,
+                            Email = normalizedEmail,  // ✅ always a valid email format
+                            UserName = ssn,              // ✅ raw value (SSN or email) as username
+                            IsActive = true,
+                            EmailConfirmed = true
+                        };
+
+                        var createResult = await _userManager.CreateAsync(user, code);
+                        if (!createResult.Succeeded)
+                        {
+                            var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+                            failedEntries.Add($"{name} (SSN: {ssn}) — {errors}");
+                            continue;
+                        }
+
+                        await _userManager.AddToRoleAsync(user, "Student");
+                        successCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        failedEntries.Add($"{name} (SSN: {ssn}) — unexpected error");
+                    }
+                }
+
+                if (totalCount == 0)
+                    return Result.Failure<ImportStudentsResponse>(UserErrors.EmptyCsvFile);
+
+                await _cacheService.RemoveAsync(AllUsersCacheKey, ct);
+                await _cacheService.RemoveAsync(UsersByRoleCacheKey("Student"), ct);
+
+                return Result.Success(new ImportStudentsResponse(
+                    TotalCount: totalCount,
+                    SuccessCount: successCount,
+                    FailedCount: failedEntries.Count,
+                    FailedEntries: failedEntries
+                ));
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure<ImportStudentsResponse>(new Error("User.ImportFailed","Failed to process CSV file",StatusCodes.Status500InternalServerError));
+            }
+        }
+
+        private static bool IsEmail(string value) =>
+            new EmailAddressAttribute().IsValid(value);
+
+        private static string NormalizeToEmail(string value) =>
+            IsEmail(value) ? value : $"{value}@students.local";
         private static UserResponse MapToResponse(ApplicationUser user, string role) => new(
             Id: user.Id,
             FullName: user.FullName,

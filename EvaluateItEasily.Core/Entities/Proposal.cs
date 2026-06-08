@@ -14,7 +14,7 @@ namespace EvaluateItEasily.Core.Entities
         public string ProposalFileUrl { get; set; } = string.Empty;
         public ProposalStatus Status { get; set; } = ProposalStatus.Pending;
         public DateTime SubmittedAt { get; set; }
-
+        public string Domain { get; set;} = string.Empty;
         public string FileName { get; set; } = string.Empty;
         public string StoredFileName { get; set; } = string.Empty;
         public string ContentType {  get; set; } = string.Empty;

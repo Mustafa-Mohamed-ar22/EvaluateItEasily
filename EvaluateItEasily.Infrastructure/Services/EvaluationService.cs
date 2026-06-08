@@ -4,13 +4,18 @@ using Microsoft.Extensions.Options;
 
 namespace EvaluateItEasily.Infrastructure.Services
 {
-    public class EvaluationService(IUnitOfWork unitOfWork, ICacheService cacheService, ICurrentUserService currentUserService, IOptions<AISettings> aiSettings, IAIService aIServive) : IEvaluationService
+    public class EvaluationService(IUnitOfWork unitOfWork, ICacheService cacheService, ICurrentUserService currentUserService,
+        IOptions<AISettings> aiSettings, IAIService aIServive,
+        IOptions<SimilarityThresholdSettings> thresholdSettings,
+        ISystemSettingService systemSettingService) : IEvaluationService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly ICacheService _cacheService = cacheService;
         private readonly ICurrentUserService _currentUserService = currentUserService;
         private readonly IAIService _AIServive = aIServive;
         private AISettings _aiSettings = aiSettings.Value;
+        private SimilarityThresholdSettings _thresholdSettings = thresholdSettings.Value;
+        private readonly ISystemSettingService _systemSettingService= systemSettingService;
         private static string EvaluationCacheKey(int proposalId) =>$"evaluations:proposal:{proposalId}";
         private static string AllEvaluationCacheKey =$"allevaluations";
 
@@ -138,7 +143,112 @@ namespace EvaluateItEasily.Infrastructure.Services
                 return Result.Failure<EvaluationResponse>(EvaluationError.AIServiceFailed);
             }
         }
-   
+
+        public async Task<Result> RunAutoEvaluationAsync(Proposal proposal,CancellationToken ct = default)
+        {
+            try
+            {
+                // Create evaluation record
+                var evaluation = new Evaluation
+                {
+                    ProposalId = proposal.Id,
+                    EvaluatedById = proposal.CreatedById, 
+                    AIStatus = AIEvaluationStatus.Pending,
+                    MaxSimilarityScore = 0,
+                    EvaluatedAt = DateTime.UtcNow
+                };
+
+                await _unitOfWork.Evaluations.AddAsync(evaluation, ct);
+                await _unitOfWork.complete(ct);
+
+                // Call Python AI API
+                var aiRequest = new AISimilarityRequest(proposal.Abstract, _aiSettings.TopK);
+                var aiResponse = await _AIServive.CallAIApiAsync(aiRequest, ct);
+
+                if (aiResponse is null)
+                {
+                    // AI failed — delete evaluation, keep proposal as Pending
+                    // Committee can manually trigger later
+                    _unitOfWork.Evaluations.Delete(evaluation);
+                    await _unitOfWork.complete(ct);
+                    return Result.Failure(EvaluationError.AIServiceFailed);
+                }
+
+                // Save similarity results
+                var rank = 1;
+                foreach (var result in aiResponse.Results)
+                {
+                    var historicalProject = await _unitOfWork.HistoricalProjects
+                        .GetByProjectIdAsync(result.ProjectId, ct);
+
+                    if (historicalProject is null) continue;
+
+                    await _unitOfWork.SimilarityResults.AddAsync(new SimilarityResult
+                    {
+                        EvaluationId = evaluation.Id,
+                        HistoricalProjectId = historicalProject.Id,
+                        SimilarityScore = result.SimilarityScore,
+                        Rank = rank++
+                    }, ct);
+                }
+
+                var maxScore = aiResponse.Results.Max(r => r.SimilarityScore);
+
+                // Update evaluation
+                evaluation.AIStatus = AIEvaluationStatus.Completed;
+                evaluation.MaxSimilarityScore = maxScore;
+                _unitOfWork.Evaluations.Update(evaluation);
+                var threshold = await _systemSettingService.GetThresholdValueAsync(ct);
+                // ── Auto reject if similarity exceeds threshold ───────────
+                if (maxScore >= threshold)
+                {
+                    proposal.Status = ProposalStatus.Rejected;
+                    _unitOfWork.Proposals.Update(proposal);
+
+                    // Auto decision
+                    await _unitOfWork.Decisions.AddAsync(new Decision
+                    {
+                        ProposalId = proposal.Id,
+                        DecidedById = proposal.CreatedById,
+                        DecisionType = DecisionType.Rejected,
+                        FeedbackComment = $"Your proposal was automatically rejected because it has " +
+                                          $"{maxScore:P0} similarity with existing projects, which exceeds " +
+                                          $"the allowed threshold of {_thresholdSettings.AutoRejectThreshold:P0}. " +
+                                          $"Please submit a new proposal with more original ideas.",
+                        DecidedAt = DateTime.UtcNow
+                    }, ct);
+
+                    // Notify all group members
+                    foreach (var member in proposal.Group.Members)
+                    {
+                        await _unitOfWork.Notifications.AddAsync(new Notification
+                        {
+                            UserId = member.StudentId,
+                            Title = "Proposal Automatically Rejected",
+                            Message = $"Your proposal '{proposal.Title}' was automatically rejected " +
+                                        $"due to {maxScore:P0} similarity with existing projects. " +
+                                        $"Please submit a new proposal with original ideas.",
+                            Type = NotificationType.DecisionMade,
+                            CreatedAt = DateTime.UtcNow
+                        }, ct);
+                    }
+                }
+
+                await _unitOfWork.complete(ct);
+
+                // Cache evaluation result
+                var created = await _unitOfWork.Evaluations.GetWithResultsAsync(proposal.Id, ct);
+                var response = created!.Adapt<EvaluationResponse>();
+                await _cacheService.SetAsync(EvaluationCacheKey(proposal.Id), response, ct);
+
+                return Result.Success();
+            }
+            catch (Exception ex)
+            {
+                await Console.Out.WriteLineAsync($"Auto evaluation failed for proposal {proposal.Id}");
+                return Result.Failure(EvaluationError.AIServiceFailed);
+            }
+        }
         public async Task<Result<IEnumerable<EvaluationResponse>>> GetAllEvaluationsAsync(CancellationToken ct = default)
         {
             var cached = await _cacheService.GetAsync<IEnumerable<EvaluationResponse>>(AllEvaluationCacheKey, ct);

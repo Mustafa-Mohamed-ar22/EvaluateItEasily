@@ -22,7 +22,7 @@ namespace EvaluateItEasily.Infrastructure.Data.Config
             builder.Property(p => p.SubmittedAt).IsRequired();
 
             builder.Property(x => x.FileName).IsRequired().HasMaxLength(255);
-
+            builder.Property(p => p.Domain).IsRequired().HasMaxLength(100);
             builder.ToTable("Proposals", t =>
             {
                 t.HasCheckConstraint(

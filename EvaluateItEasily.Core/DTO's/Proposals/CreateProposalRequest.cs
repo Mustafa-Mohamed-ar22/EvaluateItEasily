@@ -7,6 +7,7 @@ namespace EvaluateItEasily.Core.DTO_s
         string Abstract,
         string OriginalFileName,   
         string StoredFileName,     
-        string ContentType         
+        string ContentType       ,
+        string Domain
     );
 }

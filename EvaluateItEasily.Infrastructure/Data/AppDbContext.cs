@@ -1,4 +1,5 @@
-﻿using EvaluateItEasily.Infrastructure.Data.Config;
+﻿using EvaluateItEasily.Core.Entities;
+using EvaluateItEasily.Infrastructure.Data.Config;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 namespace EvaluateItEasily.Infrastructure.Data
 {
@@ -16,6 +17,7 @@ namespace EvaluateItEasily.Infrastructure.Data
         public DbSet<Proposal> Proposals { get; set; }
         public DbSet<SupervisorAssignment> SupervisorAssignments { get; set; }
         public DbSet<GroupInvitation> GroupInvitations { get; set; }
+        public DbSet<SystemSetting> SystemSettings { get; set; }
 
         public DbSet<SubmissionPeriod> SubmissionPeriods { get; set; }
 
