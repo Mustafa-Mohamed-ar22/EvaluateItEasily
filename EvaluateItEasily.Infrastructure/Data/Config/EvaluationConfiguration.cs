@@ -1,6 +1,4 @@
-﻿using EvaluateItEasily.Core.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EvaluateItEasily.Infrastructure.Data.Config
 {
@@ -25,8 +23,6 @@ namespace EvaluateItEasily.Infrastructure.Data.Config
                 .WithOne(y => y.Evaluation)
                 .HasForeignKey(y => y.EvaluationId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-           
         }
     }
 }

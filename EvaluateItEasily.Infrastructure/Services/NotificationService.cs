@@ -1,5 +1,4 @@
 using EvaluateItEasily.Core.DTO_s.Notifications;
-
 namespace EvaluateItEasily.Infrastructure.Services
 {
     public class NotificationService : INotificationService
@@ -14,7 +13,6 @@ namespace EvaluateItEasily.Infrastructure.Services
             _currentUserService = currentUserService;
             _cacheService = cacheService;
         }
-
         public async Task<Result<IEnumerable<NotificationResponse>>> GetNotificationsForUserAsync(CancellationToken ct = default)
         {
             var userId = _currentUserService.GetUserId();

@@ -3,7 +3,8 @@ using FluentValidation;
 
 namespace EvaluateItEasily.Infrastructure.Validators
 {
-    public class CreateSupervisorAssignmentRequestValidator : AbstractValidator<CreateSupervisorAssignmentRequest>
+    public class CreateSupervisorAssignmentRequestValidator :
+        AbstractValidator<CreateSupervisorAssignmentRequest>
     {
         public CreateSupervisorAssignmentRequestValidator()
         {

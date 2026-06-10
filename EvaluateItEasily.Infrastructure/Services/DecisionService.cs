@@ -10,14 +10,16 @@ namespace EvaluateItEasily.Infrastructure.Services
         private static string DecisionTypeCacheKey(string decisionType) =>$"decisions:type:{decisionType.ToLower()}";
         private static string DecisionCacheKey(int proposalId) =>$"decisions:proposal:{proposalId}";
 
-        public DecisionService(IUnitOfWork unitOfWork,ICurrentUserService currentUserService,ICacheService cacheService)
+        public DecisionService(IUnitOfWork unitOfWork,ICurrentUserService currentUserService,
+            ICacheService cacheService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
             _cacheService = cacheService;
         }
 
-        public async Task<Result<DecisionResponse>> CreateAsync(int proposalId,CreateDecisionRequest request,CancellationToken ct = default)
+        public async Task<Result<DecisionResponse>> CreateAsync(int proposalId,
+            CreateDecisionRequest request,CancellationToken ct = default)
         {
             var proposal = await _unitOfWork.Proposals.GetWithDetailsAsync(proposalId, ct);
             if (proposal is null)
@@ -59,9 +61,12 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             var notificationMessage = decisionType switch
             {
-                DecisionType.Accepted => $"Congratulations! Your proposal '{proposal.Title}' has been accepted.",
-                DecisionType.Rejected => $"Your proposal '{proposal.Title}' has been rejected. Feedback: {request.FeedbackComment}",
-                DecisionType.RevisionRequested => $"Your proposal '{proposal.Title}' requires revisions. Feedback: {request.FeedbackComment}",
+                DecisionType.Accepted => 
+                $"Congratulations! Your proposal '{proposal.Title}' has been accepted.",
+                DecisionType.Rejected => 
+                $"Your proposal '{proposal.Title}' has been rejected. Feedback: {request.FeedbackComment}",
+                DecisionType.RevisionRequested => 
+                $"Your proposal '{proposal.Title}' requires revisions. Feedback: {request.FeedbackComment}",
                 _ => string.Empty
             };
 
@@ -83,7 +88,6 @@ namespace EvaluateItEasily.Infrastructure.Services
             var created = await _unitOfWork.Decisions.GetByProposalIdAsync(proposalId, ct);
             var response = created!.Adapt<DecisionResponse>();
 
-            // cashe decision
             await _cacheService.SetAsync(DecisionCacheKey(proposalId), response, ct);
 
             return Result.Success(response);
@@ -116,7 +120,8 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             return Result.Success(response);
         }
-        public async Task<Result<IEnumerable<DecisionResponse>>> GetByDecisionTypeAsync(string decisionType,CancellationToken ct = default)
+        public async Task<Result<IEnumerable<DecisionResponse>>> GetByDecisionTypeAsync
+            (string decisionType,CancellationToken ct = default)
         {
             if (!Enum.TryParse<DecisionType>(decisionType, out var parsedType))
                 return Result.Failure<IEnumerable<DecisionResponse>>(DecisionErrors.InvalidDecisionType);

@@ -1,6 +1,4 @@
-﻿using EvaluateItEasily.Core.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EvaluateItEasily.Infrastructure.Data.Config
 {
@@ -18,8 +16,6 @@ namespace EvaluateItEasily.Infrastructure.Data.Config
             builder.HasOne(x=>x.Proposal).WithOne(y=>y.Group).HasForeignKey<Proposal>(y=>y.GroupId);
             builder.HasMany(x=>x.Members).WithOne(y=>y.Group).HasForeignKey(y=>y.GroupId);
 
-            // logging ya negm
-            // Audit
             builder.HasOne(x => x.CreatedBy)
                 .WithMany()
                 .HasForeignKey(x => x.CreatedById)

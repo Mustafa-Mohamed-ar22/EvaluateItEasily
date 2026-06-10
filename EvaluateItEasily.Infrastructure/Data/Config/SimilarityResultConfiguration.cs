@@ -1,7 +1,4 @@
-﻿using EvaluateItEasily.Core.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace EvaluateItEasily.Infrastructure.Data.Config
 {
     public class SimilarityResultConfiguration : IEntityTypeConfiguration<SimilarityResult>
@@ -15,12 +12,9 @@ namespace EvaluateItEasily.Infrastructure.Data.Config
                 .IsRequired()
                 .HasColumnType("float");
 
-            builder.Property(x => x.Rank)
-                .IsRequired();
+            builder.Property(x => x.Rank).IsRequired();
 
-            builder.HasIndex(x => new { x.EvaluationId, x.Rank })
-                .IsUnique();
-
+            builder.HasIndex(x => new { x.EvaluationId, x.Rank }).IsUnique();
 
             builder.HasOne(x => x.HistoricalProject)
                 .WithMany(y => y.SimilarityResults)
@@ -28,5 +22,4 @@ namespace EvaluateItEasily.Infrastructure.Data.Config
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }
-
 }

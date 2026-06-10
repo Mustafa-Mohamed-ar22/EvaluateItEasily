@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-
-namespace EvaluateItEasily.Infrastructure.Errors
+﻿namespace EvaluateItEasily.Infrastructure.Errors
 {
     public static class ProposalErrors
     {
@@ -38,17 +36,18 @@ namespace EvaluateItEasily.Infrastructure.Errors
             "Your group has not submitted a proposal yet",
             StatusCodes.Status404NotFound);
         public static readonly Error FileNotFound = new(
-     "Proposal.FileNotFound",
-    "Proposal file was not found on the server",
-        StatusCodes.Status404NotFound);
+            "Proposal.FileNotFound",
+        "Proposal file was not found on the server",
+            StatusCodes.Status404NotFound);
 
         public static readonly Error CannotDownload = new(
             "Proposal.CannotDownload",
             "You are not allowed to download this proposal",
             StatusCodes.Status401Unauthorized);
+
         public static readonly Error InvalidStatus = new(
-    "Proposal.InvalidStatus",
-    "Invalid status value. Valid values are: Pending, UnderReview, Accepted, Rejected, RevisionRequested",
-    StatusCodes.Status400BadRequest);
+            "Proposal.InvalidStatus",
+            "Invalid status value. Valid values are: Pending, UnderReview, Accepted, Rejected, RevisionRequested",
+            StatusCodes.Status400BadRequest);
     }
 }

@@ -1,7 +1,6 @@
 ﻿using EvaluateItEasily.Core.Settings;
 using MailKit.Net.Smtp;
 using MailKit.Security;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Options;
 using MimeKit;
 namespace EvaluateItEasily.Infrastructure.Services

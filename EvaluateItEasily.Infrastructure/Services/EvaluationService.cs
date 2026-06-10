@@ -1,10 +1,10 @@
 ﻿using EvaluateItEasily.Core.DTO_s.Evaluations;
 using EvaluateItEasily.Core.Settings;
 using Microsoft.Extensions.Options;
-
 namespace EvaluateItEasily.Infrastructure.Services
 {
-    public class EvaluationService(IUnitOfWork unitOfWork, ICacheService cacheService, ICurrentUserService currentUserService,
+    public class EvaluationService(IUnitOfWork unitOfWork, ICacheService cacheService,
+        ICurrentUserService currentUserService,
         IOptions<AISettings> aiSettings, IAIService aIServive,
         IOptions<SimilarityThresholdSettings> thresholdSettings,
         ISystemSettingService systemSettingService) : IEvaluationService
@@ -60,7 +60,7 @@ namespace EvaluateItEasily.Infrastructure.Services
                 return Result.Failure<EvaluationResponse>(EvaluationError.ProposalNotFound);
             var existingEvaluation = await _unitOfWork.Evaluations.GetWithResultsAsync(proposalId, ct);
             if (existingEvaluation is not null)
-                return Result.Failure<EvaluationResponse>(EvaluationError.AlreadyEvaluated);
+                return await GetByProposalIdAsync(proposalId, ct);
 
             if (proposal.Status != ProposalStatus.Pending)
                 return Result.Failure<EvaluationResponse>(EvaluationError.ProposalNotPending);
@@ -121,7 +121,6 @@ namespace EvaluateItEasily.Infrastructure.Services
 
                 await _unitOfWork.complete(ct);
 
-                // invalidate cashe
                 await _cacheService.RemoveAsync($"proposals:{proposalId}", ct);
                 await _cacheService.RemoveAsync("proposals:all", ct);
                 await _cacheService.RemoveAsync(AllEvaluationCacheKey, ct);
@@ -129,7 +128,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                 var created = await _unitOfWork.Evaluations.GetWithResultsAsync(proposalId, ct);
                 var response = created!.Adapt<EvaluationResponse>();
 
-                // cashe the evaluation result
                 await _cacheService.SetAsync(EvaluationCacheKey(proposalId), response, ct);
 
                 return Result.Success(response);
@@ -148,7 +146,6 @@ namespace EvaluateItEasily.Infrastructure.Services
         {
             try
             {
-                // Create evaluation record
                 var evaluation = new Evaluation
                 {
                     ProposalId = proposal.Id,
@@ -161,20 +158,16 @@ namespace EvaluateItEasily.Infrastructure.Services
                 await _unitOfWork.Evaluations.AddAsync(evaluation, ct);
                 await _unitOfWork.complete(ct);
 
-                // Call Python AI API
                 var aiRequest = new AISimilarityRequest(proposal.Abstract, _aiSettings.TopK);
                 var aiResponse = await _AIServive.CallAIApiAsync(aiRequest, ct);
 
                 if (aiResponse is null)
                 {
-                    // AI failed — delete evaluation, keep proposal as Pending
-                    // Committee can manually trigger later
                     _unitOfWork.Evaluations.Delete(evaluation);
                     await _unitOfWork.complete(ct);
                     return Result.Failure(EvaluationError.AIServiceFailed);
                 }
 
-                // Save similarity results
                 var rank = 1;
                 foreach (var result in aiResponse.Results)
                 {
@@ -194,12 +187,10 @@ namespace EvaluateItEasily.Infrastructure.Services
 
                 var maxScore = aiResponse.Results.Max(r => r.SimilarityScore);
 
-                // Update evaluation
                 evaluation.AIStatus = AIEvaluationStatus.Completed;
                 evaluation.MaxSimilarityScore = maxScore;
                 _unitOfWork.Evaluations.Update(evaluation);
                 var threshold = await _systemSettingService.GetThresholdValueAsync(ct);
-                // ── Auto reject if similarity exceeds threshold ───────────
                 if (maxScore >= threshold)
                 {
                     proposal.Status = ProposalStatus.Rejected;
@@ -218,7 +209,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                         DecidedAt = DateTime.UtcNow
                     }, ct);
 
-                    // Notify all group members
                     foreach (var member in proposal.Group.Members)
                     {
                         await _unitOfWork.Notifications.AddAsync(new Notification
@@ -236,7 +226,6 @@ namespace EvaluateItEasily.Infrastructure.Services
 
                 await _unitOfWork.complete(ct);
 
-                // Cache evaluation result
                 var created = await _unitOfWork.Evaluations.GetWithResultsAsync(proposal.Id, ct);
                 var response = created!.Adapt<EvaluationResponse>();
                 await _cacheService.SetAsync(EvaluationCacheKey(proposal.Id), response, ct);

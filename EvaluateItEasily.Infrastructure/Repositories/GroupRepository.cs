@@ -59,20 +59,7 @@ namespace EvaluateItEasily.Infrastructure.Repositories
                  .Include(x => x.Proposal)
                      .ThenInclude(p => p.SupervisorAssignment)
                          .ThenInclude(sa => sa.TechnicalAssistant)
-.FirstOrDefaultAsync(x => x.Proposal != null && x.Proposal.Id == proposalId, ct);
-
-        //public async Task<IEnumerable<GroupMember>> GetAvailbleStudents(CancellationToken ct = default)
-        //{
-        //    var studentRoleId = await _context.Roles.Where(x => x.Name == UserRole.Student.ToString()).Select(x=>x.Id).FirstOrDefaultAsync(ct);
-
-        //    var allStudents =  _context.UserRoles.Where(x => x.RoleId == studentRoleId);
-
-        //    var existedGroupMembers =await _context.GroupMembers.Select(x=>x.StudentId).ToListAsync(ct);
-
-        //    var availableStudents = allStudents.Where(x => existedGroupMembers.Contains(x.UserId));
-
-        //    return availableStudents;
-        //}
+                            .FirstOrDefaultAsync(x => x.Proposal != null && x.Proposal.Id == proposalId, ct);
         public async Task<IEnumerable<string>> GetAllAssignedStudentIdsAsync(CancellationToken ct = default) =>
                 await _context.GroupMembers
                 .Select(m => m.StudentId)

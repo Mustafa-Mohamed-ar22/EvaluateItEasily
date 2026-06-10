@@ -1,9 +1,9 @@
 ﻿using EvaluateItEasily.Core.DTO_s.SubmissionPeriod;
 using FluentValidation;
-
 namespace EvaluateItEasily.Infrastructure.Services
 {
-    public class SubmissionPeriodService(IUnitOfWork unitOfWork, ICacheService cacheService, IValidator<SetSubmissionPeriodRequest> validator) : ISubmissionPeriodService
+    public class SubmissionPeriodService(IUnitOfWork unitOfWork, ICacheService cacheService,
+        IValidator<SetSubmissionPeriodRequest> validator) : ISubmissionPeriodService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly ICacheService _cacheService = cacheService;
@@ -38,9 +38,10 @@ namespace EvaluateItEasily.Infrastructure.Services
             return Result.Success(MapToResponse(period));
         }
 
-        public async Task<Result<SubmissionPeriodResponse>> CreateAsync(SetSubmissionPeriodRequest request,CancellationToken ct = default)
+        public async Task<Result<SubmissionPeriodResponse>> CreateAsync(SetSubmissionPeriodRequest request,
+            CancellationToken ct = default)
         {
-            // Validate
+
             var validation = await _validator.ValidateAsync(request, ct);
             if (!validation.IsValid)
             {
@@ -48,7 +49,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                 return Result.Failure<SubmissionPeriodResponse>(new Error("SubmissionPeriod.Validation", errors, StatusCodes.Status400BadRequest));
             }
 
-            // Check overlap with existing active periods
             var hasOverlap = await _unitOfWork.SubmissionPeriods.HasOverlapAsync(request.StartDate, request.EndDate, ct: ct);
 
             if (hasOverlap)
@@ -65,7 +65,6 @@ namespace EvaluateItEasily.Infrastructure.Services
             await _unitOfWork.SubmissionPeriods.AddAsync(period, ct);
             await _unitOfWork.complete(ct);
 
-            // Invalidate cache
             await _cacheService.RemoveAsync(AllPeriodsCacheKey, ct);
             await _cacheService.RemoveAsync(CurrentPeriodCacheKey, ct);
 
@@ -73,9 +72,9 @@ namespace EvaluateItEasily.Infrastructure.Services
             return Result.Success(MapToResponse(period));
         }
 
-        public async Task<Result<SubmissionPeriodResponse>> UpdateAsync(int id,SetSubmissionPeriodRequest request,CancellationToken ct = default)
+        public async Task<Result<SubmissionPeriodResponse>> UpdateAsync(int id,SetSubmissionPeriodRequest request,
+            CancellationToken ct = default)
         {
-            // Validate
             var validation = await _validator.ValidateAsync(request, ct);
             if (!validation.IsValid)
             {
@@ -88,8 +87,8 @@ namespace EvaluateItEasily.Infrastructure.Services
             if (period is null)
                 return Result.Failure<SubmissionPeriodResponse>(SubmissionPeriodErrors.NotFound);
 
-            // Check overlap excluding current period
-            var hasOverlap = await _unitOfWork.SubmissionPeriods.HasOverlapAsync(request.StartDate, request.EndDate, excludeId: id, ct: ct);
+            var hasOverlap = await _unitOfWork.SubmissionPeriods.HasOverlapAsync(request.StartDate, 
+                request.EndDate, excludeId: id, ct: ct);
 
             if (hasOverlap)
                 return Result.Failure<SubmissionPeriodResponse>(
@@ -102,7 +101,6 @@ namespace EvaluateItEasily.Infrastructure.Services
             _unitOfWork.SubmissionPeriods.Update(period);
             await _unitOfWork.complete(ct);
 
-            // Invalidate cache
             await _cacheService.RemoveAsync(AllPeriodsCacheKey, ct);
             await _cacheService.RemoveAsync(CurrentPeriodCacheKey, ct);
 
@@ -120,7 +118,6 @@ namespace EvaluateItEasily.Infrastructure.Services
             _unitOfWork.SubmissionPeriods.Update(period);
             await _unitOfWork.complete(ct);
 
-            // Invalidate cache
             await _cacheService.RemoveAsync(AllPeriodsCacheKey, ct);
             await _cacheService.RemoveAsync(CurrentPeriodCacheKey, ct);
 
@@ -137,14 +134,13 @@ namespace EvaluateItEasily.Infrastructure.Services
             return Result.Success();
         }
 
-        // ── Private helper ────────────────────────────────────────────────
         private static SubmissionPeriodResponse MapToResponse(SubmissionPeriod period) => new(
             Id: period.Id,
             Title: period.Title,
             StartDate: period.StartDate,
             EndDate: period.EndDate,
             IsActive: period.IsActive,
-            IsOpen: period.IsOpen,        // ← computed live every time
+            IsOpen: period.IsOpen,        
             CreatedOn: period.CreatedOn,
             CreatedByName: period.CreatedBy?.FullName ?? string.Empty
         );

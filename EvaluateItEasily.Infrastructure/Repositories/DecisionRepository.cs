@@ -9,9 +9,8 @@
                 .Include(d => d.Proposal)
                 .Include(d => d.DecidedByUser)
                 .FirstOrDefaultAsync(d => d.ProposalId == proposalId, ct);
-        public async Task<IEnumerable<Decision>> GetByDecisionTypeAsync(
-            DecisionType decisionType,
-            CancellationToken ct = default) =>
+        public async Task<IEnumerable<Decision>> GetByDecisionTypeAsync(DecisionType decisionType
+            ,CancellationToken ct = default) =>
             await _context.Decisions
                 .Include(d => d.Proposal)
                 .Include(d => d.DecidedByUser)

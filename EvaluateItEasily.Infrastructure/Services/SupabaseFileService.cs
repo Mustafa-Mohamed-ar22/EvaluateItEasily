@@ -23,7 +23,6 @@ namespace EvaluateItEasily.Infrastructure.Services
             _settings = settings.Value;
             _logger = logger;
         }
-
         public async Task<Result<PresignedUploadResponse>> GenerateUploadUrlAsync(
             string fileName,
             CancellationToken ct = default)
@@ -68,7 +67,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                 return Result.Failure<PresignedUploadResponse>(FileErrors.SaveFailed);
             }
         }
-
         public async Task<Result<string>> GenerateDownloadUrlAsync(string storedFileName,CancellationToken ct = default)
         {
             try
@@ -105,7 +103,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                 return Result.Failure<string>(FileErrors.FileNotFound);
             }
         }
-
         public async Task<Result> DeleteFileAsync(string storedFileName,CancellationToken ct = default)
         {
             try

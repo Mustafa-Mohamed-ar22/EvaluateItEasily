@@ -2,8 +2,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 using LoginRequest = EvaluateItEasily.Core.Auth.LoginRequest;
-
-
 namespace EvaluateItEasily.Infrastructure.Validators
 {
     public class LoginRequestValidator : AbstractValidator<LoginRequest>

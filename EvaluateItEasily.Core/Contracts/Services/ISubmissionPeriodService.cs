@@ -10,6 +10,6 @@ namespace EvaluateItEasily.Core.Contracts.Services
         Task<Result<SubmissionPeriodResponse>> CreateAsync(SetSubmissionPeriodRequest request, CancellationToken ct = default);
         Task<Result<SubmissionPeriodResponse>> UpdateAsync(int id, SetSubmissionPeriodRequest request, CancellationToken ct = default);
         Task<Result> ToggleActiveAsync(int id, CancellationToken ct = default);
-        Task<Result> ValidateIsOpenAsync(CancellationToken ct = default);  // ← I will use it internally in ProposalService
+        Task<Result> ValidateIsOpenAsync(CancellationToken ct = default); 
     }
 }

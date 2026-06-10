@@ -1,12 +1,5 @@
 ﻿using EvaluateItEasily.Infrastructure.Settings;
 using FluentValidation;
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace EvaluateItEasily.Infrastructure.Validators.Common
 {
     public class ValidateFileContent : AbstractValidator<IFormFile>
@@ -21,7 +14,8 @@ namespace EvaluateItEasily.Infrastructure.Validators.Common
 
                 var fileSequenceHex = BitConverter.ToString(bytes);
 
-                if (FileSettings.AllowedFileExtensionSignatures.Equals(fileSequenceHex, StringComparison.OrdinalIgnoreCase))
+                if (FileSettings.AllowedFileExtensionSignatures.
+                Equals(fileSequenceHex, StringComparison.OrdinalIgnoreCase))
                     return true;
 
                 return false;

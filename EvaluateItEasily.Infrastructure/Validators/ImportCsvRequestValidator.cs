@@ -1,8 +1,5 @@
-﻿
-using EvaluateItEasily.Infrastructure.Settings;
-using EvaluateItEasily.Infrastructure.Validators.Common;
+﻿using EvaluateItEasily.Infrastructure.Validators.Common;
 using FluentValidation;
-
 namespace EvaluateItEasily.Infrastructure.Validators
 {
     public class ImportCsvRequestValidator : AbstractValidator<ImportCsvRequest>
@@ -33,8 +30,8 @@ namespace EvaluateItEasily.Infrastructure.Validators
                  return !string.IsNullOrWhiteSpace(firstLine)
                         && !firstLine.Any(c => c == '\0');
             })
-         .WithMessage("File must be a valid CSV file.")
-         .When(x => x.File != null);
+                .WithMessage("File must be a valid CSV file.")
+                .When(x => x.File != null);
 
         }
 

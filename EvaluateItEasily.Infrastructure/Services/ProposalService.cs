@@ -8,7 +8,8 @@ namespace EvaluateItEasily.Infrastructure.Services
     public class ProposalService(IUnitOfWork unitOfWork, ICurrentUserService currentUserService,
         IFileService fileService, 
         ICacheService cacheService, ILogger<ProposalService> logger,
-        ISubmissionPeriodService submissionPeriodService,IOptions<SupabaseSettings> filesettings,IEvaluationService evaluationService) : IProposalService
+        ISubmissionPeriodService submissionPeriodService,IOptions<SupabaseSettings> filesettings,
+        IEvaluationService evaluationService) : IProposalService
     {
         private readonly SupabaseSettings _b2Settings = filesettings.Value;
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
@@ -20,21 +21,21 @@ namespace EvaluateItEasily.Infrastructure.Services
 
         private static string ProposalCacheKey(int id) => $"proposals:{id}";
         private static string GroupProposalCacheKey(int groupId) => $"proposals:group:{groupId}";
-        private static string AllProposalsCacheKey(string? status) =>    string.IsNullOrEmpty(status)? "proposals:all": $"proposals:status:{status.ToLower()}";
+        private static string AllProposalsCacheKey(string? status) =>    string.IsNullOrEmpty(status)?
+            "proposals:all": $"proposals:status:{status.ToLower()}";
         private static string ProposalDownloadMetadataCacheKey(int id) =>$"proposals:download-metadata:{id}";
-        public async Task<Result<IEnumerable<ProposalResponse>>> GetAllAsync(string? status = null, CancellationToken ct = default)
+        public async Task<Result<IEnumerable<ProposalResponse>>> GetAllAsync(string? status = null, 
+            CancellationToken ct = default)
         {
             if (!string.IsNullOrEmpty(status) &&!Enum.TryParse<ProposalStatus>(status, ignoreCase: true, out _))
                 return Result.Failure<IEnumerable<ProposalResponse>>(ProposalErrors.InvalidStatus);
 
             var cacheKey = AllProposalsCacheKey(status);
 
-            // Check cache first
             var cached = await _cacheService.GetAsync<IEnumerable<ProposalResponse>>(cacheKey, ct);
             if (cached is not null)
                 return Result.Success(cached);
 
-            // Cache miss → hit DB
             var proposals = await _unitOfWork.Proposals.GetAllWithDetailsAsync(status, ct);
             var response = proposals.Select(MapToResponse).ToList();
 
@@ -59,7 +60,6 @@ namespace EvaluateItEasily.Infrastructure.Services
             await _cacheService.SetAsync(ProposalCacheKey(id), response, ct);
             return Result.Success(response);
         }
-
         public async Task<Result<ProposalResponse>> GetMyProposalAsync(CancellationToken ct = default)
         {
             var currentUserId = _currentUserService.GetUserId();
@@ -86,7 +86,6 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             return Result.Success(response);
         }
-
         public async Task<Result<ProposalResponse>> CreateAsync(CreateProposalRequest request,CancellationToken ct = default)
         {
             var periodCheck = await _submissionPeriodService.ValidateIsOpenAsync(ct);
@@ -133,8 +132,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                 await NotifyMembers(group, proposal, ct);
                 await _unitOfWork.complete(ct);
 
-                // ── Run AI evaluation automatically after submission ──────────
-                // Load proposal with full details needed for evaluation
                 var savedProposal = await _unitOfWork.Proposals.GetWithDetailsAsync(proposal.Id, ct);
 
                 var evaluationResult = await _evaluationService.RunAutoEvaluationAsync(savedProposal!, ct);
@@ -144,9 +141,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                     // no thing
                 }
 
-
-
-                // 
                 var cacheKeys = Enum.GetNames<ProposalStatus>()
                     .Select(s => _cacheService.RemoveAsync(AllProposalsCacheKey(s), ct))
                     .Append(_cacheService.RemoveAsync(AllProposalsCacheKey(null), ct))
@@ -154,8 +148,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                     .Append(_cacheService.RemoveAsync("AllGroups", ct));
 
                 await Task.WhenAll(cacheKeys);
-
-
                 var created = await _unitOfWork.Proposals.GetWithDetailsAsync(proposal.Id, ct);
                 var response = MapToResponse(created!);
 
@@ -170,7 +162,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                 return Result.Failure<ProposalResponse>(ProposalErrors.CannotUpload);
             }
         }
-
         public async Task<Result<ProposalResponse>> UpdateAsync(int id, UpdateProposalRequest request, CancellationToken ct = default)
         {
             var periodCheck = await _submissionPeriodService.ValidateIsOpenAsync(ct);
@@ -189,8 +180,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                   proposal.Status == ProposalStatus.Rejected))
                 return Result.Failure<ProposalResponse>(ProposalErrors.CannotUpdate);
 
-            
-
             if (proposal.Status == ProposalStatus.Rejected)
             {
                 await _unitOfWork.Decisions.DeleteByProposalIdAsync(id, ct);
@@ -205,12 +194,10 @@ namespace EvaluateItEasily.Infrastructure.Services
             if (!string.IsNullOrEmpty(proposal.StoredFileName))
                 await _fileService.DeleteFileAsync(proposal.StoredFileName, ct);
 
-            // Generate new signed download URL for new file
             var urlResult = await _fileService.GenerateDownloadUrlAsync(request.StoredFileName, ct);
             if (urlResult.IsFailure)
                 return Result.Failure<ProposalResponse>(urlResult.Error);
 
-            // ── Update proposal fields ────────────────────────────────────
             proposal.Title = request.Title;
             proposal.Abstract = CleanText(request.Abstract);
             proposal.FileName = request.OriginalFileName;
@@ -219,12 +206,9 @@ namespace EvaluateItEasily.Infrastructure.Services
             proposal.FileExtension = Path.GetExtension(request.OriginalFileName);
             proposal.ProposalFileUrl = urlResult.Data;
             proposal.Domain = request.Domain;
-
-
             _unitOfWork.Proposals.Update(proposal);
             await _unitOfWork.complete(ct);
 
-            // Parallel cache invalidation
             var cacheRemoveTasks = Enum.GetNames<ProposalStatus>()
                 .Select(s => _cacheService.RemoveAsync(AllProposalsCacheKey(s), ct))
                 .Append(_cacheService.RemoveAsync("AllGroups", ct))
@@ -251,7 +235,6 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             }
 
-            // Reload final state after evaluation
             var updated = await _unitOfWork.Proposals.GetWithDetailsAsync(proposal.Id, ct);
             var response = MapToResponse(updated!);
 
@@ -291,7 +274,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                     ct);
             }
 
-            // Authorization
             var currentUserRole = _currentUserService.GetUserRole();
             var currentUserId = _currentUserService.GetUserId();
 
@@ -305,7 +287,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                     return Result.Failure<(string, string)>(ProposalErrors.CannotDownload);
             }
 
-            // Generate presigned download URL — client downloads directly from B2
             var urlResult = await _fileService.GenerateDownloadUrlAsync(storedFileName, ct);
             if (urlResult.IsFailure)
                 return Result.Failure<(string, string)>(urlResult.Error);
@@ -328,7 +309,8 @@ namespace EvaluateItEasily.Infrastructure.Services
             Domain: proposal.Domain
         );
 
-        private async Task NotifyMembers(EvaluateItEasily.Core.Entities.Group group, Proposal proposal, CancellationToken ct)
+        private async Task NotifyMembers(EvaluateItEasily.Core.Entities.Group group,
+            Proposal proposal, CancellationToken ct)
         {
             var notifications = group.Members.Select(member => new Notification
             {

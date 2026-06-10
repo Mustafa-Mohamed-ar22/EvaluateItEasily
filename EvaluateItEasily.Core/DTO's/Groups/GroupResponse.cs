@@ -11,6 +11,7 @@
     string? ProposalStatus,
     string? SupervisorName,            
     string? TechnicalAssistantName,    
-    IEnumerable<GroupMemberResponse> Members
+    IEnumerable<GroupMemberResponse> Members,
+    string? ProposalDomain
     );
 }

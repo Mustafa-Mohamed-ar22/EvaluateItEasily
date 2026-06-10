@@ -1,6 +1,4 @@
-﻿using EvaluateItEasily.Core.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EvaluateItEasily.Infrastructure.Data.Config
 {
@@ -20,11 +18,8 @@ namespace EvaluateItEasily.Infrastructure.Data.Config
             builder.Property(x => x.GroupName)
                 .IsRequired()
                 .HasMaxLength(100);
-
             builder.Property(x => x.AcademicYear).IsRequired().HasMaxLength(350);             
             builder.Property(x => x.ArchivedAt).IsRequired();
-
-
             builder.Property(x => x.ProposalId).IsRequired(false);
 
         }

@@ -1,13 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-
 namespace EvaluateItEasily.API.Extensions
 {
     public static class KestrelExtensions
     {
-        private const long MaxFileSize = 10_485_760;      // 10 MB
-        private const long MaxRequestSize = 15_534_336;   // 15 MB
-
+        private const long MaxFileSize = 10_485_760;     
+        private const long MaxRequestSize = 15_534_336;  
         public static WebApplicationBuilder AddKestrelConfiguration(this WebApplicationBuilder builder)
         {
             builder.WebHost.ConfigureKestrel(options =>

@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Hosting;
-
-namespace EvaluateItEasily.Infrastructure.Helpers
+﻿namespace EvaluateItEasily.Infrastructure.Helpers
 {
     public class EmailBodyBuilder
     {
       
-        public static string GenerateEmailBody(string rootPath, string template, Dictionary<string, string> templateModel)
+        public static string GenerateEmailBody(string rootPath, string template,
+            Dictionary<string, string> templateModel)
         {
             var templatePath = Path.Combine(rootPath, "Templates",$"{template}.html" );
 

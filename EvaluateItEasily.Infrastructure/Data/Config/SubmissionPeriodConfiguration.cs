@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace EvaluateItEasily.Infrastructure.Data.Config
 {
     public class SubmissionPeriodConfiguration : IEntityTypeConfiguration<SubmissionPeriod>
@@ -17,14 +16,9 @@ namespace EvaluateItEasily.Infrastructure.Data.Config
 
             builder.Property(x => x.EndDate)
                 .IsRequired();
-
             builder.Property(x => x.IsActive)
                 .HasDefaultValue(true);
-
-            // computed 
             builder.Ignore(x => x.IsOpen);
-
-            // Audit
             builder.HasOne(x => x.CreatedBy)
                 .WithMany()
                 .HasForeignKey(x => x.CreatedById)

@@ -1,6 +1,4 @@
-﻿using EvaluateItEasily.Core.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EvaluateItEasily.Infrastructure.Data.Config
 {
@@ -17,17 +15,15 @@ namespace EvaluateItEasily.Infrastructure.Data.Config
             builder.Property(x => x.AssignedAt)
                 .IsRequired();
 
-           
             builder.HasOne(x => x.AssignedByUser)
                 .WithMany()
                 .HasForeignKey(x => x.AssignedById)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(sa => sa.TechnicalAssistant)
-            .WithMany()
-             .HasForeignKey(sa => sa.TechnicalAssistantId)
-            .OnDelete(DeleteBehavior.Restrict);
-
+                .WithMany()
+                .HasForeignKey(sa => sa.TechnicalAssistantId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

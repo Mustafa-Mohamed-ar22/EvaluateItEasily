@@ -1,7 +1,4 @@
-﻿using EvaluateItEasily.Core.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace EvaluateItEasily.Infrastructure.Data.Config
 {
     public class ApplicationUserConfiguration : IEntityTypeConfiguration<ApplicationUser>
@@ -18,10 +15,7 @@ namespace EvaluateItEasily.Infrastructure.Data.Config
             builder.HasMany(x=>x.Notifications).WithOne(y=>y.User).HasForeignKey(y=>y.UserId);
             builder.HasMany(x=>x.SupervisedProjects).WithOne(x=>x.Supervisor).HasForeignKey(y=>y.SupervisorId);
 
-            builder.OwnsMany(x => x.RefreshTokens)
-                         .ToTable("RefreshTokens")
-                         .WithOwner()
-                         .HasForeignKey("UserId");
+            builder.OwnsMany(x => x.RefreshTokens).ToTable("RefreshTokens").WithOwner().HasForeignKey("UserId");
         }
     }
     public class GroupInvitationConfiguration : IEntityTypeConfiguration<GroupInvitation>
@@ -29,39 +23,20 @@ namespace EvaluateItEasily.Infrastructure.Data.Config
         public void Configure(EntityTypeBuilder<GroupInvitation> builder)
         {
             builder.HasKey(gi => gi.Id);
-
-            // Prevent duplicate pending invitation for same student in same group
             builder.HasIndex(gi => new { gi.GroupId, gi.InvitedStudentId })
                 .IsUnique();
 
-            builder.Property(gi => gi.Status)
-                .IsRequired()
-                .HasConversion<string>()
-                .HasMaxLength(20);
+            builder.Property(gi => gi.Status).IsRequired().HasConversion<string>().HasMaxLength(20);
 
-            builder.Property(gi => gi.RespondedAt)
-                .IsRequired(false);
+            builder.Property(gi => gi.RespondedAt).IsRequired(false);
 
-            builder.HasOne(gi => gi.Group)
-                .WithMany(g => g.Invitations)
-                .HasForeignKey(gi => gi.GroupId)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(gi => gi.Group).WithMany(g => g.Invitations).HasForeignKey(gi => gi.GroupId).OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(gi => gi.InvitedStudent)
-                .WithMany()
-                .HasForeignKey(gi => gi.InvitedStudentId)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(gi => gi.InvitedStudent).WithMany().HasForeignKey(gi => gi.InvitedStudentId).OnDelete(DeleteBehavior.Restrict);
 
-            // Audit
-            builder.HasOne(gi => gi.CreatedBy)
-                .WithMany()
-                .HasForeignKey(gi => gi.CreatedById)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(gi => gi.CreatedBy).WithMany().HasForeignKey(gi => gi.CreatedById).OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(gi => gi.UpdatedBy)
-                .WithMany()
-                .HasForeignKey(gi => gi.UpdatedById)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(gi => gi.UpdatedBy).WithMany().HasForeignKey(gi => gi.UpdatedById).OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using EvaluateItEasily.Core.Entities;
+using Microsoft.Extensions.Logging;
 using System.Globalization;
-
 namespace EvaluateItEasily.Infrastructure.Services
 {
     public class HistoricalProjectService : IHistoricalProjectService
@@ -10,9 +10,9 @@ namespace EvaluateItEasily.Infrastructure.Services
         private readonly ICurrentUserService _currentUserService;
         private readonly ILogger<HistoricalProjectService>  _logger;
         private const string AllHistoricalProjectsCacheKey = "historical-projects:all";
+        private static string AllProposalsCacheKey(string? status) => string.IsNullOrEmpty(status) ?
+            "proposals:all" : $"proposals:status:{status.ToLower()}";
         private static string HistoricalProjectCacheKey(int id) => $"historical-projects:{id}";
-
-
         public HistoricalProjectService(IUnitOfWork unitOfWork, ICacheService cacheService,
             ICurrentUserService currentUserService,ILogger<HistoricalProjectService> logger)
         {
@@ -21,8 +21,8 @@ namespace EvaluateItEasily.Infrastructure.Services
             _currentUserService = currentUserService;
             _logger = logger;
         }
-
-        public async Task<Result<PaginatedResponse<HistoricalProjectResponse>>> GetAllAsync(PaginationRequest request, CancellationToken ct = default)
+        public async Task<Result<PaginatedResponse<HistoricalProjectResponse>>> GetAllAsync
+            (PaginationRequest request, CancellationToken ct = default)
         {
             var cachedResults = await _cacheService.GetAsync<IEnumerable<HistoricalProjectResponse>>(AllHistoricalProjectsCacheKey, ct);
             IEnumerable<HistoricalProjectResponse> allItems;
@@ -67,12 +67,17 @@ namespace EvaluateItEasily.Infrastructure.Services
                     AcademicYear = request.AcademicYear,
                     ArchivedAt = DateTime.UtcNow,
                     Domain = item.Domain,
-
                 });
+                item.Status = ProposalStatus.Archived;
+                _unitOfWork.Proposals.Update(item);
             }
             await _unitOfWork.HistoricalProjects.BulkInsertAsync(projects, ct);
             await _unitOfWork.complete(ct);
 
+            foreach (var status in Enum.GetNames<ProposalStatus>())
+                await _cacheService.RemoveAsync(AllProposalsCacheKey(status), ct);
+
+            await _cacheService.RemoveAsync(AllProposalsCacheKey(null), ct);
             await _cacheService.RemoveAsync(AllHistoricalProjectsCacheKey, ct);
 
             return Result.Success(projects.Count);
@@ -133,10 +138,10 @@ namespace EvaluateItEasily.Infrastructure.Services
                     {
                         Name = name,
                         Abstract = abstract_,
-                        GroupName = string.Empty,     //  data has no group info
+                        GroupName = string.Empty,     
                         AcademicYear = date ?? string.Empty,
                         ArchivedAt = DateTime.UtcNow,
-                        ProposalId = null              // old data — no proposal reference
+                        ProposalId = null             
                     });
                 }
 

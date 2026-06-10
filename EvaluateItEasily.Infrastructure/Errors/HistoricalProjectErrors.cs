@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-
-namespace EvaluateItEasily.Infrastructure.Errors
+﻿namespace EvaluateItEasily.Infrastructure.Errors
 {
     public static class HistoricalProjectErrors
     {

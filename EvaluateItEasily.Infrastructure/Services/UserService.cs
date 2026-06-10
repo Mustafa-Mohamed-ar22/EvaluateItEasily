@@ -5,11 +5,12 @@ using Microsoft.AspNetCore.WebUtilities;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text;
-
 namespace EvaluateItEasily.Infrastructure.Services
 {
     public class UserService(
-    UserManager<ApplicationUser> userManager,ICurrentUserService currentUserService,IWebHostEnvironment webHostEnvironment,IHttpContextAccessor httpContextAccessor,IEmailSender emailSender,ICacheService cacheService) : IUserService          // ← inject cache
+    UserManager<ApplicationUser> userManager,ICurrentUserService currentUserService,
+    IWebHostEnvironment webHostEnvironment,IHttpContextAccessor httpContextAccessor,
+    IEmailSender emailSender,ICacheService cacheService) : IUserService       
     {
         private readonly UserManager<ApplicationUser> _userManager = userManager;
         private readonly ICurrentUserService _currentUserService = currentUserService;
@@ -87,7 +88,8 @@ namespace EvaluateItEasily.Infrastructure.Services
             if (!createResult.Succeeded)
             {
                 var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
-                return Result.Failure<UserResponse>(new Error("User.CreationFailed", errors, StatusCodes.Status500InternalServerError));
+                return Result.Failure<UserResponse>
+                    (new Error("User.CreationFailed", errors, StatusCodes.Status500InternalServerError));
             }
 
             await _userManager.AddToRoleAsync(user, request.Role);
@@ -112,7 +114,8 @@ namespace EvaluateItEasily.Infrastructure.Services
             return Result.Success(response);
         }
 
-        public async Task<Result<UserResponse>> UpdateAsync(string id, UpdateUserRequest request, CancellationToken ct = default)
+        public async Task<Result<UserResponse>> UpdateAsync(string id, UpdateUserRequest request,
+            CancellationToken ct = default)
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user is null)
@@ -172,7 +175,8 @@ namespace EvaluateItEasily.Infrastructure.Services
         {
             var currentUserId = _currentUserService.GetUserId();
             var user = await _userManager.FindByIdAsync(currentUserId!);
-            var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+            var result = await _userManager.ChangePasswordAsync
+                (user, request.CurrentPassword, request.NewPassword);
 
             if (result.Succeeded)
                 return Result.Success();
@@ -198,8 +202,8 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             await _emailService.SendEmailAsync(user.Email!,"✅ EvaluateItEasily : Welcome Email",emailBody);
         }
-
-        public async Task<Result<ImportStudentsResponse>> ImportStudentsAsync(IFormFile file,CancellationToken ct = default)
+        public async Task<Result<ImportStudentsResponse>> ImportStudentsAsync(IFormFile file
+            ,CancellationToken ct = default)
         {
             // Validate file
             if (file is null || file.Length == 0)
@@ -244,13 +248,9 @@ namespace EvaluateItEasily.Infrastructure.Services
 
                     try
                     {
-                        // ✅ Normalize: real email stays as-is, SSN becomes "29801051234567@students.local"
                         var normalizedEmail = NormalizeToEmail(ssn);
-
-                        // ✅ Check both the normalized email AND raw value to avoid duplicates
                         var existing = await _userManager.FindByEmailAsync(normalizedEmail)
                                     ?? await _userManager.FindByNameAsync(ssn);
-
                         if (existing is not null)
                         {
                             failedEntries.Add($"{name} (SSN: {ssn}) — already exists");
@@ -260,8 +260,8 @@ namespace EvaluateItEasily.Infrastructure.Services
                         var user = new ApplicationUser
                         {
                             FullName = name,
-                            Email = normalizedEmail,  // ✅ always a valid email format
-                            UserName = ssn,              // ✅ raw value (SSN or email) as username
+                            Email = normalizedEmail, 
+                            UserName = ssn,          
                             IsActive = true,
                             EmailConfirmed = true
                         };
@@ -298,16 +298,18 @@ namespace EvaluateItEasily.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                return Result.Failure<ImportStudentsResponse>(new Error("User.ImportFailed","Failed to process CSV file",StatusCodes.Status500InternalServerError));
+                return Result.Failure<ImportStudentsResponse>
+                    (new Error("User.ImportFailed","Failed to process CSV file",
+                    StatusCodes.Status500InternalServerError));
             }
         }
-
         private static bool IsEmail(string value) =>
             new EmailAddressAttribute().IsValid(value);
 
         private static string NormalizeToEmail(string value) =>
             IsEmail(value) ? value : $"{value}@students.local";
-        private static UserResponse MapToResponse(ApplicationUser user, string role) => new(
+        private static UserResponse MapToResponse(ApplicationUser user, string role)
+            => new(
             Id: user.Id,
             FullName: user.FullName,
             Email: user.Email!,

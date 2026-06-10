@@ -1,6 +1,4 @@
 ﻿using EvaluateItEasily.Core.DTO_s.Groups;
-
-
 namespace EvaluateItEasily.Infrastructure.Services
 {
     public class GroupService : IGroupService
@@ -11,14 +9,14 @@ namespace EvaluateItEasily.Infrastructure.Services
         private readonly ICacheService _cacheService;
         private readonly string cacheKey = "AllGroups";
         private const string AvailableStudentsCacheKey = "AvailableStudents";
-        public GroupService(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, UserManager<ApplicationUser> userManager,ICacheService cacheService)
+        public GroupService(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, 
+            UserManager<ApplicationUser> userManager,ICacheService cacheService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
             _userManager = userManager;
             _cacheService = cacheService;
         }
-
         public async Task<Result<IEnumerable<GroupResponse>>> GetAllAsync(CancellationToken ct = default)
         {
             var cachedResults = await _cacheService.GetAsync< IEnumerable<GroupResponse>>(cacheKey,ct);
@@ -36,44 +34,6 @@ namespace EvaluateItEasily.Infrastructure.Services
             }
             return Result.Success(result);
         }
-        //public async Task<Result<GroupResponse>> AddMemberAsync(int groupId, AddMemberRequest request, CancellationToken ct = default)
-        //{
-        //    var currentUserId = _currentUserService.GetUserId();
-
-        //    var group = await _unitOfWork.Groups.GetByMemberIdAsync(currentUserId!, ct);
-        //    if (group is null)
-        //        return Result.Failure<GroupResponse>(GroupErrors.NoGroupFound);
-        //    if (group.LeaderId != currentUserId)
-        //        return Result.Failure<GroupResponse>(GroupErrors.NotLeader);
-        //    var student = await _userManager.FindByEmailAsync(request.StudentEmail);
-        //    if (student is null)
-        //        return Result.Failure<GroupResponse>(GroupErrors.StudentNotFound);
-
-        //    var roles = await _userManager.GetRolesAsync(student);
-        //    if (!roles.Contains("Student"))
-        //        return Result.Failure<GroupResponse>(GroupErrors.CannotAddNonStudent);
-
-        //    var existingGroup = await _unitOfWork.Groups.GetByMemberIdAsync(student.Id, ct);
-        //    if (existingGroup is not null)
-        //        return Result.Failure<GroupResponse>(GroupErrors.StudentAlreadyInGroup);
-
-        //    group.Members.Add(new GroupMember
-        //    {
-        //        StudentId = student.Id,
-        //        IsLeader = false,
-        //        JoinedAt=DateTime.UtcNow,
-        //    });
-
-        //    _unitOfWork.Groups.Update(group);
-        //    await _unitOfWork.complete(ct);
-        //    await _cacheService.RemoveAsync(cacheKey,ct);
-        //    await _cacheService.RemoveAsync($"{cacheKey}-{groupId}", ct);
-        //    await _cacheService.RemoveAsync(AvailableStudentsCacheKey, ct);
-
-        //    var updated = await _unitOfWork.Groups.GetWithMembersAsync(groupId, ct);
-        //    return Result.Success(updated.Adapt<GroupResponse>());
-        //}
-
         public async Task<Result<GroupResponse>> CreateAsync(CreateGroupRequest request, CancellationToken ct = default)
         {
             var currentUserId = _currentUserService.GetUserId();
@@ -107,7 +67,6 @@ namespace EvaluateItEasily.Infrastructure.Services
             var created = await _unitOfWork.Groups.GetWithMembersAsync(group.Id, ct);
             return Result.Success(created.Adapt<GroupResponse>());
         }
-
         public async Task<Result<GroupResponse>> GetByIdAsync(int id, CancellationToken ct = default)
         {
             var cachedResult = await _cacheService.GetAsync<GroupResponse>($"{cacheKey}-{id}", ct);
@@ -133,7 +92,6 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             return Result.Success(group.Adapt<GroupResponse>());
         }
-
         public async Task<Result> RemoveMemberAsync(int groupId, string studentId, CancellationToken ct = default)
         {
             var currentUserId = _currentUserService.GetUserId();
@@ -192,7 +150,6 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             return Result.Success(result);
         }
-
 
         public async Task<Result<GroupInvitationResponse>> SendInvitationAsync(int groupId,AddMemberRequest request,CancellationToken ct = default)
         {
@@ -303,7 +260,6 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             return Result.Success();
         }
-
         public async Task<Result> RejectInvitationAsync(int invitationId,CancellationToken ct = default)
         {
             var currentUserId = _currentUserService.GetUserId();
@@ -339,7 +295,6 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             return Result.Success();
         }
-
         public async Task<Result<IEnumerable<GroupInvitationResponse>>> GetGroupInvitationsAsync(int groupId,CancellationToken ct = default)
         {
             var currentUserId = _currentUserService.GetUserId();
@@ -355,15 +310,12 @@ namespace EvaluateItEasily.Infrastructure.Services
             var invitations = await _unitOfWork.GroupInvitations.GetByGroupIdAsync(groupId, ct);
             return Result.Success(invitations.Select(MapToInvitationResponse));
         }
-
         public async Task<Result<IEnumerable<GroupInvitationResponse>>> GetMyInvitationsAsync(CancellationToken ct = default)
         {
             var currentUserId = _currentUserService.GetUserId();
             var invitations = await _unitOfWork.GroupInvitations.GetByStudentIdAsync(currentUserId, ct);
             return Result.Success(invitations.Select(MapToInvitationResponse));
         }
-
-        // ── Private helper ────────────────────────────────────────────────
         private static GroupInvitationResponse MapToInvitationResponse(GroupInvitation invitation) => new(
             Id: invitation.Id,
             GroupId: invitation.GroupId,

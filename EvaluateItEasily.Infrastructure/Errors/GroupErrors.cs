@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-
-namespace EvaluateItEasily.Infrastructure.Errors
+﻿namespace EvaluateItEasily.Infrastructure.Errors
 {
     public static class GroupErrors
     {
@@ -64,6 +62,5 @@ namespace EvaluateItEasily.Infrastructure.Errors
         public static readonly Error NotInvitedStudent = new("Group.NotInvitedStudent",
                 "You are not the invited student for this invitation",
                             StatusCodes.Status401Unauthorized);
-
     }
 }

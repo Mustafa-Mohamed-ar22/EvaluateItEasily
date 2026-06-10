@@ -33,11 +33,8 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             return Result.Failure<AuthResponse>(result.IsNotAllowed ? AuthErrors.EmailNotConfirmed : AuthErrors.InvalidCredentials);
         }
-        private static bool IsEmail(string value) =>
-            new EmailAddressAttribute().IsValid(value);
-
-        private static string NormalizeToEmail(string value) =>
-            IsEmail(value) ? value : $"{value}@students.local";
+        private static bool IsEmail(string value) =>new EmailAddressAttribute().IsValid(value);
+        private static string NormalizeToEmail(string value) =>IsEmail(value) ? value : $"{value}@students.local";
 
         public async Task<Result> RegisterAsync(Core.Auth.RegisterRequest request, CancellationToken ct = default)
         {
@@ -140,7 +137,7 @@ namespace EvaluateItEasily.Infrastructure.Services
         {
             var user =await userManager.FindByEmailAsync(request.Email);
             if (user is null || !user.EmailConfirmed)
-                return Result.Failure(AuthErrors.InvalideCode);//mis
+                return Result.Failure(AuthErrors.InvalideCode);
             IdentityResult result;
             try
             {
@@ -161,7 +158,8 @@ namespace EvaluateItEasily.Infrastructure.Services
         {
             var request = _httpContextAccessor.HttpContext?.Request;
             var origin = $"{request?.Scheme}://{request?.Host}";
-            var emailBody = EmailBodyBuilder.GenerateEmailBody(_webHostEnvironment.ContentRootPath,"TemplateSendEmail", new Dictionary<string, string>
+            var emailBody = EmailBodyBuilder.GenerateEmailBody(_webHostEnvironment.ContentRootPath,
+                "TemplateSendEmail", new Dictionary<string, string>
             {
                 {"{{name}}",user.FullName},
                 {"{{action_url}}",$"{_domainOptions.Domain1}/auth/emailConfirmation?userId={user.Id}&code={code}"}
@@ -173,7 +171,8 @@ namespace EvaluateItEasily.Infrastructure.Services
         {
             var request = _httpContextAccessor.HttpContext?.Request;
             var origin = $"{request?.Scheme}://{request?.Host}";
-            var emailBody = EmailBodyBuilder.GenerateEmailBody(_webHostEnvironment.ContentRootPath, "ForgetPasswordTemplate", new Dictionary<string, string>
+            var emailBody = EmailBodyBuilder.GenerateEmailBody(_webHostEnvironment.ContentRootPath, 
+                "ForgetPasswordTemplate", new Dictionary<string, string>
             {
                 {"{{name}}",user.FullName},
                 {"{{action_url}}",$"{_domainOptions.Domain1}/auth/forgetPassword?email={user.Email}&code={code}"}
@@ -183,22 +182,18 @@ namespace EvaluateItEasily.Infrastructure.Services
         }
         public async Task<Result<AuthResponse>> RefreshTokenAsync(string refreshToken, CancellationToken ct = default)
         {
-            // Find user who owns this token
             var user = userManager.Users.SingleOrDefault(u => u.RefreshTokens.Any(rt => rt.Token == refreshToken));
 
             if (user is null)
                 return Result.Failure<AuthResponse>(AuthErrors.InvalidToken);
 
-            // Find the token
             var token = user.RefreshTokens.Single(x => x.Token == refreshToken);
 
             if (!token.IsActive)
                 return Result.Failure<AuthResponse>(AuthErrors.InvalidToken);
 
-            // Revoke old token
             token.RevokedIn = DateTime.UtcNow;
 
-            // Generate new refresh token
             var newRefreshToken = JwtProvider.GenerateRefreshToken();
             user.RefreshTokens.Add(newRefreshToken);
 

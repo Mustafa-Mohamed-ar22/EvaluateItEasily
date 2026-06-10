@@ -5,7 +5,6 @@ using EvaluateItEasily.Core.DTO_s.Proposals;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
-
 namespace EvaluateItEasily.API.Controllers
 {
     [ApiController]
@@ -33,9 +32,7 @@ namespace EvaluateItEasily.API.Controllers
         {
             var result = await _proposalService.GetByIdAsync(id, ct);
             return result.IsSuccess ? Ok(result.Data) : result.ToProblem();
-        }
-            
-
+        }            
         [HttpGet("my-proposal")]
         [Authorize(Roles = "Student")]
         public async Task<ActionResult<ProposalResponse>> GetMyProposal(CancellationToken ct)

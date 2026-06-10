@@ -97,18 +97,11 @@ namespace EvaluateItEasily.Infrastructure.Services
                 return Result.Failure<SupervisorAssignmentResponse>(
                     SupervisorAssignmentErrors.ProposalNotFound);
 
-            // Proposal must be Accepted
-            //if (proposal.Status != ProposalStatus.Accepted)
-            //    return Result.Failure<SupervisorAssignmentResponse>(
-            //        SupervisorAssignmentErrors.ProposalNotAccepted);
-
-            // Not already assigned
             var existing = await _unitOfWork.SupervisorAssignments
                 .GetByProposalIdAsync(request.ProposalId, ct);
             if (existing is not null)
                 return Result.Failure<SupervisorAssignmentResponse>(
                     SupervisorAssignmentErrors.AlreadyAssigned);
-
             // Validate Supervisor
             var supervisor = await _userManager.FindByIdAsync(request.SupervisorId);
             if (supervisor is null)
@@ -119,7 +112,6 @@ namespace EvaluateItEasily.Infrastructure.Services
             if (!supervisorRoles.Contains("Supervisor"))
                 return Result.Failure<SupervisorAssignmentResponse>(
                     SupervisorAssignmentErrors.InvalidSupervisor);
-
             // Validate TechnicalAssistant
             var technicalAssistant = await _userManager.FindByIdAsync(request.TechnicalAssistantId);
             if (technicalAssistant is null)
@@ -132,7 +124,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                     SupervisorAssignmentErrors.InvalidTechnicalAssistant);
 
             var currentUserId = _currentUserService.GetUserId();
-
             // Create assignment
             var assignment = new SupervisorAssignment
             {
@@ -145,7 +136,6 @@ namespace EvaluateItEasily.Infrastructure.Services
             };
 
             await _unitOfWork.SupervisorAssignments.AddAsync(assignment, ct);
-
             // Notify Supervisor
             await _unitOfWork.Notifications.AddAsync(new Notification
             {
@@ -155,7 +145,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                 Type = NotificationType.SupervisorAssigned,
                 CreatedAt = DateTime.UtcNow
             }, ct);
-
             // Notify TechnicalAssistant
             await _unitOfWork.Notifications.AddAsync(new Notification
             {
@@ -165,7 +154,6 @@ namespace EvaluateItEasily.Infrastructure.Services
                 Type = NotificationType.SupervisorAssigned,
                 CreatedAt = DateTime.UtcNow
             }, ct);
-
             // Notify all group members
             foreach (var member in proposal.Group.Members)
             {
@@ -180,7 +168,6 @@ namespace EvaluateItEasily.Infrastructure.Services
             }
 
             await _unitOfWork.complete(ct);
-
             // Invalidate cache
             await InvalidateCachesAsync(assignment.Id, request.SupervisorId, request.TechnicalAssistantId, ct);
             await _cacheService.RemoveAsync("AllGroups", ct);
@@ -188,7 +175,6 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             var created = await _unitOfWork.SupervisorAssignments.GetWithDetailsAsync(assignment.Id, ct);
             var response = created!.Adapt<SupervisorAssignmentResponse>();
-
             // cache
             await _cacheService.SetAsync(AssignmentCacheKey(assignment.Id), response, ct);
 

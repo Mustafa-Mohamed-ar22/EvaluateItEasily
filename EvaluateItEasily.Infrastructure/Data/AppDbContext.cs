@@ -1,9 +1,9 @@
-﻿using EvaluateItEasily.Core.Entities;
-using EvaluateItEasily.Infrastructure.Data.Config;
+﻿using EvaluateItEasily.Infrastructure.Data.Config;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 namespace EvaluateItEasily.Infrastructure.Data
 {
-    public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService currentUserService) : IdentityDbContext<ApplicationUser>(options)
+    public class AppDbContext(DbContextOptions<AppDbContext> options, 
+        ICurrentUserService currentUserService) : IdentityDbContext<ApplicationUser>(options)
     {
         private readonly ICurrentUserService _currentUserService= currentUserService;
 
@@ -24,17 +24,6 @@ namespace EvaluateItEasily.Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.ApplyConfigurationsFromAssembly(typeof(ApplicationUserConfiguration).Assembly);
-            
-            // we will not make any physical delete , so make all relationships are restricted instead of Cascade
-
-
-            //var cascadeFKs = builder.Model.GetEntityTypes().SelectMany(t => t.GetForeignKeys()).
-            //    Where(fk => fk.DeleteBehavior == DeleteBehavior.Cascade && !fk.IsOwnership);
-
-            //foreach (var fk in cascadeFKs)
-            //    fk.DeleteBehavior = DeleteBehavior.Restrict;
-
-
             base.OnModelCreating(builder);
         }
 

@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
-
 using System.Text.Json;
-
 namespace EvaluateItEasily.Infrastructure.Services
 {
     public class CacheService(IDistributedCache distributedCache) : ICacheService

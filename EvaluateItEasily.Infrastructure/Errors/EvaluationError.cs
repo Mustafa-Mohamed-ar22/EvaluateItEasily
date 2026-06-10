@@ -3,36 +3,37 @@
     public class EvaluationError
     {
         public static readonly Error NotFound = new(
-        "Evaluation.NotFound",
-        "Evaluation was not found",
-        StatusCodes.Status404NotFound);
+                "Evaluation.NotFound",
+                "Evaluation was not found",
+                StatusCodes.Status404NotFound);
 
         public static readonly Error AlreadyEvaluated = new(
-            "Evaluation.AlreadyEvaluated",
-            "This proposal has already been evaluated",
-            StatusCodes.Status409Conflict);
+                "Evaluation.AlreadyEvaluated",
+                "This proposal has already been evaluated",
+                StatusCodes.Status409Conflict);
 
         public static readonly Error ProposalNotFound = new(
-            "Evaluation.ProposalNotFound",
-            "Proposal was not found",
-            StatusCodes.Status404NotFound);
+                "Evaluation.ProposalNotFound",
+                "Proposal was not found",
+                StatusCodes.Status404NotFound);
 
         public static readonly Error AIServiceFailed = new(
-            "Evaluation.AIServiceFailed",
-            "AI similarity service failed to respond ... try after some seconds",
-            StatusCodes.Status500InternalServerError);
+                "Evaluation.AIServiceFailed",
+                "AI similarity service failed to respond ... try after some seconds",
+                StatusCodes.Status500InternalServerError);
 
         public static readonly Error ProposalNotPending = new(
-            "Evaluation.ProposalNotPending",
-            "Only pending proposals can be evaluated",
-            StatusCodes.Status409Conflict);
+                "Evaluation.ProposalNotPending",
+                "Only pending proposals can be evaluated",
+                StatusCodes.Status409Conflict);
         public static readonly Error ProposalNotBelongToStudent = new(
-                 "Evaluation.ProposalNotBelongToStudent",
-        "This proposal does not belong to your group",
-                      StatusCodes.Status401Unauthorized);
+                     "Evaluation.ProposalNotBelongToStudent",
+            "This proposal does not belong to your group",
+                          StatusCodes.Status401Unauthorized);
 
-        public static readonly Error AutoRejected = new("Evaluation.AutoRejected",
-    "Proposal was automatically rejected due to high similarity score",
-                   StatusCodes.Status422UnprocessableEntity);
+        public static readonly Error AutoRejected = 
+                new("Evaluation.AutoRejected",
+        "Proposal was automatically rejected due to high similarity score",
+                       StatusCodes.Status422UnprocessableEntity);
     }
 }

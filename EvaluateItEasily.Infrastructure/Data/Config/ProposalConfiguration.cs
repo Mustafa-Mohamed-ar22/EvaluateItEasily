@@ -1,7 +1,4 @@
-﻿using EvaluateItEasily.Core.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace EvaluateItEasily.Infrastructure.Data.Config
 {
     public class ProposalConfiguration : IEntityTypeConfiguration<Proposal>

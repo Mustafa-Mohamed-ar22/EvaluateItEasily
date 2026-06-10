@@ -1,8 +1,5 @@
-﻿using EvaluateItEasily.Infrastructure.Data;
-using FluentValidation;
+﻿using FluentValidation;
 using RegisterRequest = EvaluateItEasily.Core.Auth.RegisterRequest;
-
-
 namespace EvaluateItEasily.Infrastructure.Validators
 {
     public class RegisterRequestValidator : AbstractValidator<RegisterRequest>

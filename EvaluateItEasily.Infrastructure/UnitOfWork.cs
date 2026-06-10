@@ -1,6 +1,4 @@
-﻿
-using EvaluateItEasily.Core.Contracts;
-
+﻿using EvaluateItEasily.Core.Contracts;
 namespace EvaluateItEasily.Infrastructure
 {
     public class UnitOfWork : IUnitOfWork
@@ -29,7 +27,6 @@ namespace EvaluateItEasily.Infrastructure
         public IGroupInvitationRepository GroupInvitations { get; private set; }
 
         public ISystemSettingRepository SystemSettings { get; private set; }
-
         public UnitOfWork(AppDbContext context, IGroupRepository groupRepository, 
             IProposalRepository proposals, INotificationRepository notifications,
             IHistoricalProjectsRepository historicalProjects, IEvaluationRepository evaluations,
@@ -52,7 +49,6 @@ namespace EvaluateItEasily.Infrastructure
             GroupInvitations = groupInvitations;
             SystemSettings = systemSettings;
         }
-
         public async Task<int> complete(CancellationToken cancellationToken = default)
         {
             return await _context.SaveChangesAsync(cancellationToken);

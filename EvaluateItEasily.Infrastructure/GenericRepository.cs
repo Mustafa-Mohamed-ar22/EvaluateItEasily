@@ -1,6 +1,4 @@
 ﻿using EvaluateItEasily.Core.Contracts;
-using EvaluateItEasily.Infrastructure.Data;
-
 namespace EvaluateItEasily.Infrastructure
 {
     using Microsoft.EntityFrameworkCore;

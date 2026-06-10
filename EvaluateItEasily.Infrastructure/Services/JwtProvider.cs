@@ -1,12 +1,10 @@
-﻿using EvaluateItEasily.Core.Entities;
-using EvaluateItEasily.Infrastructure.Options;
+﻿using EvaluateItEasily.Infrastructure.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-
 namespace EvaluateItEasily.Infrastructure.Services
 {
     public class JwtProvider(IOptions<JwtOptions> options)

@@ -1,6 +1,4 @@
-﻿
-
-namespace EvaluateItEasily.Infrastructure.Repositories
+﻿namespace EvaluateItEasily.Infrastructure.Repositories
 {
     public class SimilarityResultRepository : GenericRepository<SimilarityResult>, ISimilarityResultRepository
     {

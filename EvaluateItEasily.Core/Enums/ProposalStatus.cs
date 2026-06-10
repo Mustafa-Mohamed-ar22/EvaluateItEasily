@@ -6,7 +6,8 @@
         UnderReview,
         Accepted,
         Rejected,
-        RevisionRequested
+        RevisionRequested,
+        Archived
     }
     public enum UpdatableStatuses
     {

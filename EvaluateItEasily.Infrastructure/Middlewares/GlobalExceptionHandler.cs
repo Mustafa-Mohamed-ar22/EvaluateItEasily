@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -9,7 +8,8 @@ namespace EvaluateItEasily.Infrastructure.Middlewares
     {
         private readonly ILogger<GlobalExceptionHandler> _logger = logger;
 
-        public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
+        public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, 
+            Exception exception, CancellationToken cancellationToken)
         {
             _logger.LogError(exception, "Internal Server Error {Message}", exception.Message); ;
             var problemDetails = new ProblemDetails

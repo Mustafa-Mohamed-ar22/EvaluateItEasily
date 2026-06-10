@@ -1,5 +1,4 @@
 ﻿
-
 namespace EvaluateItEasily.Infrastructure.Repositories
 {
     public class ProposalRepository : GenericRepository<Proposal>, IProposalRepository
@@ -9,7 +8,8 @@ namespace EvaluateItEasily.Infrastructure.Repositories
         }
 
 
-        public async Task<IEnumerable<Proposal>> GetAllWithDetailsAsync(string? status = null,CancellationToken ct = default)
+        public async Task<IEnumerable<Proposal>> GetAllWithDetailsAsync(string? status = null
+            ,CancellationToken ct = default)
         {
             var query = _context.Proposals
                 .Include(p => p.Group)
@@ -18,7 +18,8 @@ namespace EvaluateItEasily.Infrastructure.Repositories
                     .ThenInclude(g => g.Members)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(status) &&Enum.TryParse<ProposalStatus>(status, ignoreCase: true, out var parsedStatus))
+            if (!string.IsNullOrEmpty(status) &&Enum.TryParse<ProposalStatus>(status, ignoreCase: true,
+                out var parsedStatus))
                 query = query.Where(p => p.Status == parsedStatus);
 
             return await query

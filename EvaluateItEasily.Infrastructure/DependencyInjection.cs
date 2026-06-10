@@ -1,5 +1,4 @@
-﻿
-using EvaluateItEasily.Core.Contracts;
+﻿using EvaluateItEasily.Core.Contracts;
 using EvaluateItEasily.Core.Settings;
 using EvaluateItEasily.Infrastructure.Middlewares;
 using EvaluateItEasily.Infrastructure.Options;
@@ -10,13 +9,10 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
-using Supabase;
 using System.Reflection;
 using System.Text;
-
 namespace EvaluateItEasily.Infrastructure
 {
     public static class DependencyInjection
@@ -61,7 +57,8 @@ namespace EvaluateItEasily.Infrastructure
                 client.Timeout = TimeSpan.FromMinutes(3);   
             });
 
-            services.Configure<SimilarityThresholdSettings>(configuration.GetSection(SimilarityThresholdSettings.SectionName));
+            services.Configure<SimilarityThresholdSettings>
+                (configuration.GetSection(SimilarityThresholdSettings.SectionName));
             services.AddScoped<IFileService, SupabaseFileService>();
 
             services.AddScoped<ICacheService, CacheService>();
@@ -109,13 +106,16 @@ namespace EvaluateItEasily.Infrastructure
         private static IServiceCollection AddOptions(this IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
-            services.AddOptions<JwtOptions>().BindConfiguration(JwtOptions.SectionName).ValidateDataAnnotations().ValidateOnStart();
-            services.AddOptions<EmailSettings>().BindConfiguration(EmailSettings.SectionName).ValidateDataAnnotations().ValidateOnStart();
+            services.AddOptions<JwtOptions>().
+                BindConfiguration(JwtOptions.SectionName).ValidateDataAnnotations().ValidateOnStart();
+            services.AddOptions<EmailSettings>().
+                BindConfiguration(EmailSettings.SectionName).
+                ValidateDataAnnotations().ValidateOnStart();
 
-            services.AddOptions<DomainCORS>().BindConfiguration(DomainCORS.SectionName).ValidateDataAnnotations().ValidateOnStart();
+            services.AddOptions<DomainCORS>().BindConfiguration(DomainCORS.SectionName)
+                .ValidateDataAnnotations().ValidateOnStart();
             return services;
         }
-
 
         private static IServiceCollection AddDatabase(
             this IServiceCollection services,
@@ -123,17 +123,12 @@ namespace EvaluateItEasily.Infrastructure
         {
             string cs = configuration.GetSection("constr").Value!;
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("-------------------------------------------------------------------------------------");
-            Console.WriteLine(cs);
-            Console.WriteLine("-------------------------------------------------------------------------------------");
             Console.ForegroundColor = ConsoleColor.White;
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(cs,b=>b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
 
             return services;
         }
-
-        // -----------------------------------------------
 
         private static IServiceCollection AddIdentity(
             this IServiceCollection services)
@@ -153,8 +148,6 @@ namespace EvaluateItEasily.Infrastructure
             return services;
         }
 
-        // -----------------------------------------------
-
         private static IServiceCollection AddRepositories(
             this IServiceCollection services)
         {
@@ -164,8 +157,6 @@ namespace EvaluateItEasily.Infrastructure
             return services;
         }
 
-        // -----------------------------------------------
-
         private static IServiceCollection AddServices(
             this IServiceCollection services)
         {
@@ -173,9 +164,6 @@ namespace EvaluateItEasily.Infrastructure
 
             return services;
         }
-
-        // -----------------------------------------------
-
         private static IServiceCollection AddAuthentication(
             this IServiceCollection services,
             IConfiguration configuration)
@@ -203,9 +191,6 @@ namespace EvaluateItEasily.Infrastructure
 
             return services;
         }
-
-        // -----------------------------------------------
-
         private static IServiceCollection AddValidators(
             this IServiceCollection services)
         {
@@ -213,9 +198,6 @@ namespace EvaluateItEasily.Infrastructure
             services.AddFluentValidationAutoValidation();
             return services;
         }
-
-        // -----------------------------------------------
-
         private static IServiceCollection AddMapping(this IServiceCollection services)
         {
             services.AddMapster();

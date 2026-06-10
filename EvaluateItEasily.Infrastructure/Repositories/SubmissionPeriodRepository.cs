@@ -27,7 +27,8 @@
                 .OrderByDescending(sp => sp.StartDate)
                 .ToListAsync(ct);
 
-        public async Task<bool> HasOverlapAsync(DateTime start,DateTime end,int? excludeId = null,CancellationToken ct = default) =>
+        public async Task<bool> HasOverlapAsync(DateTime start,DateTime end,
+            int? excludeId = null,CancellationToken ct = default) =>
             await _context.SubmissionPeriods
                 .AnyAsync(sp => sp.IsActive
                     && (excludeId == null || sp.Id != excludeId)

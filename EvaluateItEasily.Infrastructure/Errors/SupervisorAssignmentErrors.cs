@@ -1,7 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Http;
-
-namespace EvaluateItEasily.Infrastructure.Errors
+﻿namespace EvaluateItEasily.Infrastructure.Errors
 {
     public static class SupervisorAssignmentErrors
     {
@@ -35,7 +32,8 @@ namespace EvaluateItEasily.Infrastructure.Errors
             "Assigned user must have the Supervisor role",
             StatusCodes.Status400BadRequest);
 
-        public static readonly Error TechnicalAssistantNotFound = new("SupervisorAssignment.TechnicalAssistantNotFound",
+        public static readonly Error TechnicalAssistantNotFound = new(
+            "SupervisorAssignment.TechnicalAssistantNotFound",
             "Technical assistant was not found",
             StatusCodes.Status404NotFound);
 

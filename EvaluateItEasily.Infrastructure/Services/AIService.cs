@@ -1,6 +1,5 @@
 ﻿using EvaluateItEasily.Core.DTO_s.Evaluations;
 using System.Net.Http.Json;
-
 namespace EvaluateItEasily.Infrastructure.Services
 {
     public class AIService : IAIService

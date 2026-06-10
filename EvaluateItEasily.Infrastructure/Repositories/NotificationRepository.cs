@@ -1,4 +1,3 @@
-
 namespace EvaluateItEasily.Infrastructure.Repositories
 {
     public class NotificationRepository : GenericRepository<Notification>, INotificationRepository

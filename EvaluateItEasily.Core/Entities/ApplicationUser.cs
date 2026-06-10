@@ -7,9 +7,6 @@ namespace EvaluateItEasily.Core.Entities
         public bool IsActive { get; set; } = true;
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedOn { get; set; }
-
-
-
         public ICollection<GroupMember> GroupMemberships { get; set; } = [];
         public Group? LeadingGroup { get; set; }
         public ICollection<Notification> Notifications { get; set; } = [];

@@ -6,7 +6,7 @@
     DateTime StartDate,
     DateTime EndDate,
     bool IsActive,
-    bool IsOpen,             // ← computed live — is it open RIGHT NOW?
+    bool IsOpen,             
     DateTime CreatedOn,
     string CreatedByName
 );

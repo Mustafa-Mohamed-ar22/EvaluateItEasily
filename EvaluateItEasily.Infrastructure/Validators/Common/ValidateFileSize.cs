@@ -1,6 +1,5 @@
 ﻿using EvaluateItEasily.Infrastructure.Settings;
 using FluentValidation;
-using Microsoft.AspNetCore.Http;
 namespace EvaluateItEasily.Infrastructure.Validators.Common
 {
     public class ValidateFileSize : AbstractValidator<IFormFile>

@@ -14,23 +14,18 @@ namespace EvaluateItEasily.Infrastructure.Mapping
                 .Map(dest => dest.Email, src => src.Student.Email);
 
             TypeAdapterConfig<Group, GroupResponse>
-     .NewConfig()
-     .Map(dest => dest.LeaderName, src => src.Leader.FullName)
-     .Map(dest => dest.MembersCount, src => src.Members.Count)
-     .Map(dest => dest.ProposalId, src => src.Proposal != null
-         ? src.Proposal.Id
-         : (int?)null)
-     .Map(dest => dest.ProposalStatus, src => src.Proposal != null
-         ? src.Proposal.Status.ToString()
-         : null)
-     .Map(dest => dest.SupervisorName, src => src.Proposal != null
-         && src.Proposal.SupervisorAssignment != null
-         ? src.Proposal.SupervisorAssignment.Supervisor.FullName
-         : null)
-     .Map(dest => dest.TechnicalAssistantName, src => src.Proposal != null
-         && src.Proposal.SupervisorAssignment != null
-         ? src.Proposal.SupervisorAssignment.TechnicalAssistant.FullName
-         : null);
+                 .NewConfig()
+                 .Map(dest => dest.LeaderName, src => src.Leader.FullName)
+                 .Map(dest => dest.MembersCount, src => src.Members.Count)
+                 .Map(dest => dest.ProposalId, src => src.Proposal != null ? src.Proposal.Id : (int?)null)
+                 .Map(dest => dest.ProposalStatus, src => src.Proposal != null? src.Proposal.Status.ToString(): null)
+                 .Map(dest => dest.ProposalDomain, src => src.Proposal != null ? src.Proposal.Domain: null)
+                 .Map(dest => dest.SupervisorName, src => src.Proposal != null&& src.Proposal.SupervisorAssignment != null
+                        ? src.Proposal.SupervisorAssignment.Supervisor.FullName : null)
+                 .Map(dest => dest.TechnicalAssistantName, src => src.Proposal != null
+                     && src.Proposal.SupervisorAssignment != null
+                     ? src.Proposal.SupervisorAssignment.TechnicalAssistant.FullName
+                     : null);
 
             TypeAdapterConfig<HistoricalProject, HistoricalProjectResponse>
             .NewConfig()
@@ -42,7 +37,6 @@ namespace EvaluateItEasily.Infrastructure.Mapping
             .Map(dest => dest.ArchivedAt, src => src.ArchivedAt)
             .Map(dest => dest.ProposalId, src => src.ProposalId);
 
-            // Evaluation → EvaluationResponse
             TypeAdapterConfig<Evaluation, EvaluationResponse>
                 .NewConfig()
                 .Map(dest => dest.ProposalTitle, src => src.Proposal.Title)
@@ -50,7 +44,6 @@ namespace EvaluateItEasily.Infrastructure.Mapping
                 .Map(dest => dest.AIStatus, src => src.AIStatus.ToString())
                 .Map(dest => dest.SimilarityResults, src => src.SimilarityResults);
 
-            // SimilarityResult → SimilarityResultResponse
             TypeAdapterConfig<SimilarityResult, SimilarityResultResponse>
                 .NewConfig()
                 .Map(dest => dest.MatchedProjectName, src => src.HistoricalProject.Name)
@@ -62,7 +55,6 @@ namespace EvaluateItEasily.Infrastructure.Mapping
             .Map(dest => dest.ProposalTitle, src => src.Proposal.Title)
             .Map(dest => dest.DecidedByName, src => src.DecidedByUser.FullName)
             .Map(dest => dest.DecisionType, src => src.DecisionType.ToString());
-
 
             TypeAdapterConfig<SupervisorAssignment, SupervisorAssignmentResponse>
             .NewConfig()
