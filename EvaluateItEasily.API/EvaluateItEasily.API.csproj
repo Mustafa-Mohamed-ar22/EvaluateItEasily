@@ -1,27 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.24">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.24">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\EvaluateItEasily.Core\EvaluateItEasily.Core.csproj" />
-    <ProjectReference Include="..\EvaluateItEasily.Infrastructure\EvaluateItEasily.Infrastructure.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\EvaluateItEasily.Core\EvaluateItEasily.Core.csproj" />
+		<ProjectReference Include="..\EvaluateItEasily.Infrastructure\EvaluateItEasily.Infrastructure.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwwroot\Uploads\" />
-    <Folder Include="wwwroot\Uploads\Proposals\" />
-  </ItemGroup>
+	<ItemGroup>
+		<Folder Include="wwwroot\Uploads\" />
+		<Folder Include="wwwroot\Uploads\Proposals\" />
+	</ItemGroup>
 	<ItemGroup>
 		<Content Include="Templates\**">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -29,6 +29,6 @@
 		</Content>
 	</ItemGroup>
 	<ItemGroup>
-	  <None Remove="Templates\TemplateWelcomeEmail.html" />
+		<None Remove="Templates\TemplateWelcomeEmail.html" />
 	</ItemGroup>
 </Project>

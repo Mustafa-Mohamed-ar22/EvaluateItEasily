@@ -1,7 +1,5 @@
 using EvaluateItEasily.API.Extensions;
 using EvaluateItEasily.Infrastructure;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.OpenApi;
 
 namespace EvaluateItEasily.API
@@ -37,7 +35,15 @@ namespace EvaluateItEasily.API
             var app = builder.Build();
             using (var scope = app.Services.CreateScope())
             {
-                await DataSeeder.SeedRolesAsync(scope.ServiceProvider);
+                try
+                {
+                    await DataSeeder.SeedRolesAsync(app.Services);
+                }
+                catch (Exception ex)
+                {
+                    // Log it but don't crash the app
+                    Console.WriteLine($"Seeding failed: {ex.Message}");
+                }
             }
             app.UseExceptionHandler();
 
