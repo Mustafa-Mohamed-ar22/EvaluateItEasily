@@ -257,7 +257,7 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             await _cacheService.RemoveAsync($"{cacheKey}-{invitation.GroupId}", ct);
             await _cacheService.RemoveAsync(cacheKey, ct);
-
+            await _cacheService.RemoveAsync("AvailableStudents", ct);
             return Result.Success();
         }
         public async Task<Result> RejectInvitationAsync(int invitationId,CancellationToken ct = default)

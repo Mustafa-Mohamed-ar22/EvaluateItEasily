@@ -94,6 +94,10 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             await _userManager.AddToRoleAsync(user, request.Role);
 
+            await _cacheService.RemoveAsync(AllUsersCacheKey, ct);
+            await _cacheService.RemoveAsync(UsersByRoleCacheKey(request.Role), ct);
+            await _cacheService.RemoveAsync("AvailableStudents", ct);
+
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
@@ -108,8 +112,7 @@ namespace EvaluateItEasily.Infrastructure.Services
 
             var response = MapToResponse(user, request.Role);
 
-            await _cacheService.RemoveAsync(AllUsersCacheKey, ct);
-            await _cacheService.RemoveAsync(UsersByRoleCacheKey(request.Role), ct);
+            
 
             return Result.Success(response);
         }
@@ -141,7 +144,8 @@ namespace EvaluateItEasily.Infrastructure.Services
             var response = MapToResponse(user, userRole);
 
             await _cacheService.RemoveAsync(AllUsersCacheKey, ct);
-            await _cacheService.RemoveAsync(UsersByRoleCacheKey(userRole), ct); 
+            await _cacheService.RemoveAsync(UsersByRoleCacheKey(userRole), ct);
+            await _cacheService.RemoveAsync("AvailableStudents", ct);
             await _cacheService.SetAsync(UserCacheKey(id), response, ct);
 
             return Result.Success(response);
@@ -167,7 +171,7 @@ namespace EvaluateItEasily.Infrastructure.Services
             await _cacheService.RemoveAsync(AllUsersCacheKey, ct);
             await _cacheService.RemoveAsync(UsersByRoleCacheKey(userRole), ct);
             await _cacheService.RemoveAsync(UserCacheKey(id), ct);
-
+            await _cacheService.RemoveAsync("AvailableStudents", ct);
             return Result.Success();
         }
 
@@ -288,6 +292,7 @@ namespace EvaluateItEasily.Infrastructure.Services
 
                 await _cacheService.RemoveAsync(AllUsersCacheKey, ct);
                 await _cacheService.RemoveAsync(UsersByRoleCacheKey("Student"), ct);
+                await _cacheService.RemoveAsync("AvailableStudents", ct);
 
                 return Result.Success(new ImportStudentsResponse(
                     TotalCount: totalCount,

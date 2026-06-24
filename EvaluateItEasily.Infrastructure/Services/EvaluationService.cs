@@ -60,7 +60,19 @@ namespace EvaluateItEasily.Infrastructure.Services
                 return Result.Failure<EvaluationResponse>(EvaluationError.ProposalNotFound);
             var existingEvaluation = await _unitOfWork.Evaluations.GetWithResultsAsync(proposalId, ct);
             if (existingEvaluation is not null)
+            {
+                if (proposal.Status == ProposalStatus.Pending)
+                {
+                    proposal.Status = ProposalStatus.UnderReview;
+                    _unitOfWork.Proposals.Update(proposal);
+                    await _unitOfWork.complete(ct);
+
+                    await _cacheService.RemoveAsync($"proposals:{proposalId}", ct);
+                    await _cacheService.RemoveAsync("proposals:all", ct);
+                }
+
                 return await GetByProposalIdAsync(proposalId, ct);
+            }
 
             if (proposal.Status != ProposalStatus.Pending)
                 return Result.Failure<EvaluationResponse>(EvaluationError.ProposalNotPending);
