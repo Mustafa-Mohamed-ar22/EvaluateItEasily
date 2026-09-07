@@ -48,6 +48,9 @@ namespace EvaluateItEasily.Infrastructure
                 options.Configuration = configuration["Redis:ConnectionString"];
                 options.InstanceName = "EvaluateItEasily";
             });
+
+            services.AddHostedService<RedisKeepAliveService>();
+
             services.Configure<SupabaseSettings>(configuration.GetSection(SupabaseSettings.SectionName));
 
             services.Configure<SupabaseSettings>(configuration.GetSection(SupabaseSettings.SectionName));
